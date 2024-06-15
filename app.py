@@ -20,8 +20,9 @@ filter_urls = {
 def apply_filter(image_url, filter_name):
     try:
         # Download the image
-        image_bytes = requests.get(image_url).content
-        image = Image.open(BytesIO(image_bytes))
+        response = requests.get(image_url)
+        image_bytes = BytesIO(response.content)
+        image = Image.open(image_bytes)
         
         # Apply the selected filter
         if filter_name == "الفلتر 1":
@@ -83,7 +84,8 @@ def callback_query(call):
     try:
         # Get the chosen filter and original photo
         filter_name = call.data
-        photo_url = f"https://api.telegram.org/file/bot{bot.token}/{bot.get_file(call.message.photo[-1].file_id).file_path}"
+        photo = call.message.photo[-1]
+        photo_url = f"https://api.telegram.org/file/bot{bot.token}/{bot.get_file(photo.file_id).file_path}"
         
         # Apply the filter
         filtered_image = apply_filter(photo_url, filter_name)

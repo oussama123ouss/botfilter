@@ -9,7 +9,7 @@ bot = telebot.TeleBot("6987466658:AAEWjl7aoa_LSqQSx0s4REM5gyT6vUz_6sc")
 
 # Filter URLs
 filter_urls = {
-    "الفلتر 1": "https://drive.google.com/uc?export=download&id=14S6bx7deeUyqdcDSwFWQH3iOIhkAUEJ5",
+    "الفلتر 1": "https://drive.google.com/uc?export=download&id=1CAJCmGqhtOBzDCKNpJsM6V8saAFpwHD9",
     "الفلتر 2": "https://drive.google.com/uc?export=download&id=14S6c4TiDBbU87HvPOr8yxG0ePdp9dsCC",
     "الفلتر 3": "https://drive.google.com/uc?export=download&id=14fmZrMoIzNp3YBVP21vMKcGxum150-Uf",
     "الفلتر 4": "https://drive.google.com/uc?export=download&id=14nDCF8zHKChe6lfqNp-2MlvjvHni9WYD",

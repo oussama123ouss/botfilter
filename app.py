@@ -18,30 +18,35 @@ filter_urls = {
 
 # Function to apply filter to an image
 def apply_filter(image_url, filter_name):
-    # Download the image
-    image_bytes = requests.get(image_url).content
-    image = Image.open(BytesIO(image_bytes))
+    try:
+        # Download the image
+        image_bytes = requests.get(image_url).content
+        image = Image.open(BytesIO(image_bytes))
+        
+        # Apply the selected filter
+        if filter_name == "الفلتر 1":
+            filtered_image = image.filter(ImageFilter.BLUR)
+        elif filter_name == "الفلتر 2":
+            filtered_image = image.filter(ImageFilter.CONTOUR)
+        elif filter_name == "الفلتر 3":
+            filtered_image = image.filter(ImageFilter.EMBOSS)
+        elif filter_name == "الفلتر 4":
+            filtered_image = image.filter(ImageFilter.SHARPEN)
+        elif filter_name == "الفلتر 5":
+            filtered_image = image.filter(ImageFilter.SMOOTH)
+        else:
+            return None  # Invalid filter name
+        
+        # Save the filtered image to bytes
+        output_buffer = BytesIO()
+        filtered_image.save(output_buffer, format='PNG')
+        output_buffer.seek(0)
+        
+        return output_buffer
     
-    # Apply the selected filter
-    if filter_name == "الفلتر 1":
-        filtered_image = image.filter(ImageFilter.BLUR)
-    elif filter_name == "الفلتر 2":
-        filtered_image = image.filter(ImageFilter.CONTOUR)
-    elif filter_name == "الفلتر 3":
-        filtered_image = image.filter(ImageFilter.EMBOSS)
-    elif filter_name == "الفلتر 4":
-        filtered_image = image.filter(ImageFilter.SHARPEN)
-    elif filter_name == "الفلتر 5":
-        filtered_image = image.filter(ImageFilter.SMOOTH)
-    else:
-        return None  # Invalid filter name
-    
-    # Save the filtered image to bytes
-    output_buffer = BytesIO()
-    filtered_image.save(output_buffer, format='PNG')
-    output_buffer.seek(0)
-    
-    return output_buffer
+    except Exception as e:
+        print(f"Error applying filter: {e}")
+        return None
 
 # Handler for the /start command
 @bot.message_handler(commands=['start'])
@@ -61,33 +66,38 @@ def send_welcome(message):
 # Handler for receiving images
 @bot.message_handler(content_types=['photo'])
 def handle_photo(message):
-    # Ask user to select a filter
-    filter_keyboard = types.InlineKeyboardMarkup(row_width=1)
-    buttons = [types.InlineKeyboardButton(filter_name, callback_data=filter_name) for filter_name in filter_urls]
-    filter_keyboard.add(*buttons)
+    try:
+        # Ask user to select a filter
+        filter_keyboard = types.InlineKeyboardMarkup(row_width=1)
+        buttons = [types.InlineKeyboardButton(filter_name, callback_data=filter_name) for filter_name in filter_urls]
+        filter_keyboard.add(*buttons)
+        
+        bot.send_message(message.chat.id, "اختر أحد الفلاتر التالية لتطبيقها على الصورة:", reply_markup=filter_keyboard)
     
-    bot.send_message(message.chat.id, "اختر أحد الفلاتر التالية لتطبيقها على الصورة:", reply_markup=filter_keyboard)
+    except Exception as e:
+        print(f"Error handling photo: {e}")
 
 # Handler for callback queries (filter selection)
 @bot.callback_query_handler(func=lambda call: True)
 def callback_query(call):
-    # Get the chosen filter and original photo
-    filter_name = call.data
-    photo_url = f"https://api.telegram.org/file/bot{bot.token}/{bot.get_file(call.message.photo[-1].file_id).file_path}"
-    
-    # Apply the filter
-    filtered_image = apply_filter(photo_url, filter_name)
-    
-    if filtered_image:
-        bot.send_photo(call.message.chat.id, filtered_image)
-    else:
-        bot.send_message(call.message.chat.id, "خطأ في تطبيق الفلتر. الرجاء المحاولة مرة أخرى.")
-    
-    # Delete the message prompting the user to select a filter
     try:
+        # Get the chosen filter and original photo
+        filter_name = call.data
+        photo_url = f"https://api.telegram.org/file/bot{bot.token}/{bot.get_file(call.message.photo[-1].file_id).file_path}"
+        
+        # Apply the filter
+        filtered_image = apply_filter(photo_url, filter_name)
+        
+        if filtered_image:
+            bot.send_photo(call.message.chat.id, filtered_image)
+        else:
+            bot.send_message(call.message.chat.id, "خطأ في تطبيق الفلتر. الرجاء المحاولة مرة أخرى.")
+        
+        # Delete the message prompting the user to select a filter
         bot.delete_message(call.message.chat.id, call.message.message_id)
-    except telebot.apihelper.ApiTelegramException as e:
-        print(f"Error deleting message: {e}")
+    
+    except Exception as e:
+        print(f"Error handling callback query: {e}")
 
 # Start polling
 bot.polling()

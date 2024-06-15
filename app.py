@@ -61,8 +61,7 @@ def send_welcome(message):
                      "مرحبا عزيزي  👋\n\n"
                      "أرسل الصورة المراد تطبيق فلاتر عليها\n\n"
                      "الصيغ المدعومة (PNG, JPG, HEIC)\n\n"
-                     "و يكون أسفل الرسالة زر مكتوب عليه تابعني ويؤدي إلى رابط قناتي:\n"
-                     "https://t.me/elkhabur", reply_markup=channel_button)
+                   , reply_markup=channel_button)
 
 # Handler for receiving images
 @bot.message_handler(content_types=['photo'])

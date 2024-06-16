@@ -1,91 +1,153 @@
+import os
 import logging
-from PIL import Image, ImageFilter, ImageEnhance
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackQueryHandler, CallbackContext
+from PIL import Image, ImageEnhance, ImageFilter
+import io
 
-# قائمة الفلاتر
-FILTERS = [
-    ('Mocha', ImageFilter.CONTOUR),
-    ('Orange Teal', ImageEnhance.Color),
-    ('Blur', ImageFilter.BLUR),
-    ('Detail', ImageFilter.DETAIL),
-    ('Edge Enhance', ImageFilter.EDGE_ENHANCE),
-    ('Emboss', ImageFilter.EMBOSS),
-    ('Sharpen', ImageFilter.SHARPEN),
-    ('Brightness', ImageEnhance.Brightness),
-    ('Contrast', ImageEnhance.Contrast),
-    ('Sharpness', ImageEnhance.Sharpness),
-]
-
-# مفتاح API الخاص بالبوت
+# API Key
 API_KEY = '6987466658:AAEWjl7aoa_LSqQSx0s4REM5gyT6vUz_6sc'
 
-# إعداد التسجيل
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                    level=logging.INFO)
-
+# Enable logging
+logging.basicConfig(
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    level=logging.INFO
+)
 logger = logging.getLogger(__name__)
 
-# دالة بدء البوت
 def start(update: Update, context: CallbackContext) -> None:
-    user = update.message.from_user
-    logger.info(f"User {user.first_name} started the bot.")
-    update.message.reply_text('مرحبًا! أرسل صورة لتطبيق الفلاتر عليها.')
+    update.message.reply_text("مرحباً! أرسل صورة لتطبيق الفلاتر عليها.")
 
-# دالة لاستلام الصور
-def handle_photo(update: Update, context: CallbackContext) -> None:
-    photo_file = update.message.photo[-1].get_file()
-    photo_path = 'received_image.jpg'
-    photo_file.download(photo_path)
-    logger.info("Photo received and downloaded.")
+def apply_filter(image: Image.Image, filter_name: str) -> Image.Image:
+    if filter_name == 'Mocha':
+        return image.convert('L')
+    elif filter_name == 'Shades of Wat...':
+        return image.filter(ImageFilter.GaussianBlur(5))
+    elif filter_name == 'Blue Film':
+        r, g, b = image.split()
+        r = r.point(lambda i: i * 0.5)
+        return Image.merge('RGB', (r, g, b))
+    elif filter_name == 'Iron':
+        return image.filter(ImageFilter.EDGE_ENHANCE)
+    elif filter_name == 'The Darkest H...':
+        enhancer = ImageEnhance.Brightness(image)
+        return enhancer.enhance(0.5)
+    elif filter_name == 'iPhone 14 Pro':
+        enhancer = ImageEnhance.Contrast(image)
+        return enhancer.enhance(1.5)
+    elif filter_name == 'Top Gun Mave...':
+        enhancer = ImageEnhance.Color(image)
+        return enhancer.enhance(1.5)
+    elif filter_name == 'Black Tone':
+        return image.convert('1')
+    elif filter_name == 'Retro Fashion':
+        return image.filter(ImageFilter.SMOOTH)
+    elif filter_name == 'Cinematic':
+        enhancer = ImageEnhance.Contrast(image)
+        return enhancer.enhance(2.0)
+    elif filter_name == 'filmlook':
+        return image.filter(ImageFilter.SHARPEN)
+    elif filter_name == 'CINEMA':
+        enhancer = ImageEnhance.Color(image)
+        return enhancer.enhance(2.0)
+    elif filter_name == 'Ahmed Ali':
+        enhancer = ImageEnhance.Brightness(image)
+        return enhancer.enhance(1.2)
+    elif filter_name == 'Orange teal':
+        r, g, b = image.split()
+        r = r.point(lambda i: i * 1.5)
+        b = b.point(lambda i: i * 0.5)
+        return Image.merge('RGB', (r, g, b))
+    elif filter_name == 'Anime':
+        return image.filter(ImageFilter.CONTOUR)
+    elif filter_name == 'Estetic':
+        enhancer = ImageEnhance.Color(image)
+        return enhancer.enhance(1.2)
+    elif filter_name == 'ProPortrait':
+        return image.filter(ImageFilter.BLUR)
+    elif filter_name == 'iPhone 15 pro':
+        enhancer = ImageEnhance.Contrast(image)
+        return enhancer.enhance(1.8)
+    elif filter_name == 'Vivi':
+        enhancer = ImageEnhance.Color(image)
+        return enhancer.enhance(1.8)
+    elif filter_name == 'CineStyle':
+        enhancer = ImageEnhance.Brightness(image)
+        return enhancer.enhance(0.7)
+    elif filter_name == 'Sam Kolder':
+        enhancer = ImageEnhance.Color(image)
+        return enhancer.enhance(2.5)
+    elif filter_name == 'Bright Sky':
+        enhancer = ImageEnhance.Brightness(image)
+        return enhancer.enhance(1.5)
+    elif filter_name == 'Dark 2024':
+        enhancer = ImageEnhance.Brightness(image)
+        return enhancer.enhance(0.3)
+    elif filter_name == 'Cinematic Night':
+        enhancer = ImageEnhance.Contrast(image)
+        return enhancer.enhance(2.5)
+    elif filter_name == 'Deep Fall':
+        enhancer = ImageEnhance.Brightness(image)
+        return enhancer.enhance(0.5)
+    elif filter_name == 'Blue Lake':
+        r, g, b = image.split()
+        b = b.point(lambda i: i * 1.5)
+        return Image.merge('RGB', (r, g, b))
+    elif filter_name == 'Smooth Face':
+        return image.filter(ImageFilter.SMOOTH_MORE)
+    else:
+        return image
 
-    # إنشاء قائمة الأزرار للفلاتر
-    keyboard = [[InlineKeyboardButton(flt[0], callback_data=flt[0])] for flt in FILTERS]
+def send_filters_keyboard(update: Update, context: CallbackContext) -> None:
+    keyboard = [
+        [InlineKeyboardButton("Mocha", callback_data='Mocha'), InlineKeyboardButton("Shades of Wat...", callback_data='Shades of Wat...')],
+        [InlineKeyboardButton("Blue Film", callback_data='Blue Film'), InlineKeyboardButton("Iron", callback_data='Iron')],
+        [InlineKeyboardButton("The Darkest H...", callback_data='The Darkest H...'), InlineKeyboardButton("iPhone 14 Pro", callback_data='iPhone 14 Pro')],
+        [InlineKeyboardButton("Top Gun Mave...", callback_data='Top Gun Mave...'), InlineKeyboardButton("Black Tone", callback_data='Black Tone')],
+        [InlineKeyboardButton("Retro Fashion", callback_data='Retro Fashion'), InlineKeyboardButton("Cinematic", callback_data='Cinematic')],
+        [InlineKeyboardButton("filmlook", callback_data='filmlook'), InlineKeyboardButton("CINEMA", callback_data='CINEMA')],
+        [InlineKeyboardButton("Ahmed Ali", callback_data='Ahmed Ali'), InlineKeyboardButton("Orange teal", callback_data='Orange teal')],
+        [InlineKeyboardButton("Anime", callback_data='Anime'), InlineKeyboardButton("Estetic", callback_data='Estetic')],
+        [InlineKeyboardButton("ProPortrait", callback_data='ProPortrait'), InlineKeyboardButton("iPhone 15 pro", callback_data='iPhone 15 pro')],
+        [InlineKeyboardButton("Vivi", callback_data='Vivi'), InlineKeyboardButton("CineStyle", callback_data='CineStyle')],
+        [InlineKeyboardButton("Sam Kolder", callback_data='Sam Kolder'), InlineKeyboardButton("Bright Sky", callback_data='Bright Sky')],
+        [InlineKeyboardButton("Dark 2024", callback_data='Dark 2024'), InlineKeyboardButton("Cinematic Night", callback_data='Cinematic Night')],
+        [InlineKeyboardButton("Deep Fall", callback_data='Deep Fall'), InlineKeyboardButton("Blue Lake", callback_data='Blue Lake')],
+        [InlineKeyboardButton("Smooth Face", callback_data='Smooth Face')]
+    ]
     reply_markup = InlineKeyboardMarkup(keyboard)
+    update.message.reply_text('اختر أحد الفلاتر الآتية:', reply_markup=reply_markup)
 
-    update.message.reply_text('اختر أحد الفلاتر التالية:', reply_markup=reply_markup)
+def handle_image(update: Update, context: CallbackContext) -> None:
+    context.user_data['image'] = update.message.photo[-1].get_file().download_as_bytearray()
+    send_filters_keyboard(update, context)
 
-# دالة لتطبيق الفلتر
-def apply_filter(image_path, filter_name):
-    img = Image.open(image_path)
-    
-    for flt in FILTERS:
-        if flt[0] == filter_name:
-            if isinstance(flt[1], ImageFilter.Filter):
-                img = img.filter(flt[1])
-            elif isinstance(flt[1], type(ImageEnhance.Color(img))):
-                enhancer = flt[1](img)
-                img = enhancer.enhance(2)  # يمكنك تعديل مستوى التأثير هنا
-
-    output_path = 'output_image.jpg'
-    img.save(output_path)
-    logger.info(f"Filter {filter_name} applied and image saved.")
-    return output_path
-
-# دالة لاختيار الفلتر
-def filter_callback(update: Update, context: CallbackContext) -> None:
+def button(update: Update, context: CallbackContext) -> None:
     query = update.callback_query
-    filter_name = query.data
-
     query.answer()
-    photo_path = 'received_image.jpg'
-    output_path = apply_filter(photo_path, filter_name)
 
-    # إرسال الصورة بعد تطبيق الفلتر
-    query.message.reply_photo(photo=open(output_path, 'rb'))
-    query.message.reply_text(f'تمت إضافة التأثير بنجاح: {filter_name}')
+    filter_name = query.data
+    image_data = context.user_data['image']
+    image = Image.open(io.BytesIO(image_data))
+
+    filtered_image = apply_filter(image, filter_name)
+
+    bio = io.BytesIO()
+    bio.name = 'image.png'
+    filtered_image.save(bio, 'PNG')
+    bio.seek(0)
+
+    query.message.reply_photo(photo=bio, caption=f"Filter name: {filter_name}\nتمت إضافة التأثير بنجاح.")
 
 def main() -> None:
-    # إعداد البوت باستخدام مفتاح الـ API
-    updater = Updater(API_KEY, use_context=True)
+    updater = Updater(API_KEY)
 
     dispatcher = updater.dispatcher
 
     dispatcher.add_handler(CommandHandler("start", start))
-    dispatcher.add_handler(MessageHandler(Filters.photo, handle_photo))
-    dispatcher.add_handler(CallbackQueryHandler(filter_callback))
+    dispatcher.add_handler(MessageHandler(Filters.photo, handle_image))
+    dispatcher.add_handler(CallbackQueryHandler(button))
 
-    # بدء البوت
     updater.start_polling()
     updater.idle()
 

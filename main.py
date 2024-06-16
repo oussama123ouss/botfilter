@@ -34,8 +34,19 @@ def apply_filter(image: Image.Image, filter_name: str) -> Image.Image:
 
         return image
     elif filter_name == 'Blue Film':
+        # Adjust contrast
+        enhancer_contrast = ImageEnhance.Contrast(image)
+        image = enhancer_contrast.enhance(0.0)  # -100% contrast
+
+        # Adjust saturation
+        enhancer_saturation = ImageEnhance.Color(image)
+        image = enhancer_saturation.enhance(2.0)  # +100% saturation
+
+        # Adjust temperature (color balance)
         r, g, b = image.split()
-        r = r.point(lambda i: i * 0.5)
+        r = r.point(lambda i: i * 1.0)  # No change to red channel
+        g = g.point(lambda i: i * 1.0)  # No change to green channel
+        b = b.point(lambda i: i * 0.0)  # -100% blue channel (cooling effect)
         return Image.merge('RGB', (r, g, b))
     # Add other filters as per your existing implementation
     else:

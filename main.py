@@ -2,7 +2,7 @@ import os
 import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackQueryHandler, CallbackContext
-from PIL import Image, ImageEnhance, ImageFilter
+from PIL import Image, ImageEnhance
 import io
 
 # API Key
@@ -20,7 +20,6 @@ def start(update: Update, context: CallbackContext) -> None:
 
 def apply_filter(image: Image.Image, filter_name: str) -> Image.Image:
     if filter_name == 'Mocha':
-        # تطبيق تأثير Pine
         enhancer = ImageEnhance.Color(image)
         image = enhancer.enhance(1.3)  # زيادة التشبع بنسبة 30%
 
@@ -33,12 +32,295 @@ def apply_filter(image: Image.Image, filter_name: str) -> Image.Image:
         image = Image.merge('RGB', (r, g, b))
 
         return image
+
+    elif filter_name == 'Blue Film':
+        enhancer = ImageEnhance.Color(image)
+        image = enhancer.enhance(0.7)  # تقليل التشبع بنسبة 30%
+
+        enhancer = ImageEnhance.Contrast(image)
+        image = enhancer.enhance(1.5)  # زيادة التباين بنسبة 50%
+
+        return image
+    
+    elif filter_name == 'Iron':
+        enhancer = ImageEnhance.Color(image)
+        image = enhancer.enhance(1.1)  # زيادة التشبع بنسبة 10%
+
+        enhancer = ImageEnhance.Contrast(image)
+        image = enhancer.enhance(1.3)  # زيادة التباين بنسبة 30%
+
+        return image
+    
+    elif filter_name == 'The Darkest H':
+        enhancer = ImageEnhance.Brightness(image)
+        image = enhancer.enhance(0.6)  # تقليل السطوع بنسبة 40%
+
+        enhancer = ImageEnhance.Contrast(image)
+        image = enhancer.enhance(1.8)  # زيادة التباين بنسبة 80%
+
+        return image
+    
+    elif filter_name == 'iPhone 14 Pro':
+        enhancer = ImageEnhance.Color(image)
+        image = enhancer.enhance(1.5)  # زيادة التشبع بنسبة 50%
+
+        enhancer = ImageEnhance.Contrast(image)
+        image = enhancer.enhance(1.4)  # زيادة التباين بنسبة 40%
+
+        enhancer = ImageEnhance.Brightness(image)
+        image = enhancer.enhance(1.2)  # زيادة السطوع بنسبة 20%
+
+        return image
+
+    elif filter_name == 'Shades of Wat...':
+        enhancer = ImageEnhance.Color(image)
+        image = enhancer.enhance(0.8)  # تقليل التشبع بنسبة 20%
+
+        enhancer = ImageEnhance.Contrast(image)
+        image = enhancer.enhance(1.2)  # زيادة التباين بنسبة 20%
+
+        return image
+
+    elif filter_name == 'Top Gun Mave...':
+        enhancer = ImageEnhance.Color(image)
+        image = enhancer.enhance(1.1)  # زيادة التشبع بنسبة 10%
+
+        enhancer = ImageEnhance.Contrast(image)
+        image = enhancer.enhance(1.5)  # زيادة التباين بنسبة 50%
+
+        return image
+
+    elif filter_name == 'Black Tone':
+        enhancer = ImageEnhance.Contrast(image)
+        image = enhancer.enhance(1.3)  # زيادة التباين بنسبة 30%
+
+        enhancer = ImageEnhance.Brightness(image)
+        image = enhancer.enhance(0.7)  # تقليل السطوع بنسبة 30%
+
+        return image
+
+    elif filter_name == 'Retro Fashion':
+        enhancer = ImageEnhance.Color(image)
+        image = enhancer.enhance(0.9)  # تقليل التشبع بنسبة 10%
+
+        enhancer = ImageEnhance.Contrast(image)
+        image = enhancer.enhance(1.3)  # زيادة التباين بنسبة 30%
+
+        return image
+
+    elif filter_name == 'Cinematic':
+        enhancer = ImageEnhance.Color(image)
+        image = enhancer.enhance(1.2)  # زيادة التشبع بنسبة 20%
+
+        enhancer = ImageEnhance.Contrast(image)
+        image = enhancer.enhance(1.5)  # زيادة التباين بنسبة 50%
+
+        return image
+
+    elif filter_name == 'filmlook':
+        enhancer = ImageEnhance.Color(image)
+        image = enhancer.enhance(1.1)  # زيادة التشبع بنسبة 10%
+
+        enhancer = ImageEnhance.Contrast(image)
+        image = enhancer.enhance(1.4)  # زيادة التباين بنسبة 40%
+
+        return image
+
+    elif filter_name == 'CINEMA':
+        enhancer = ImageEnhance.Color(image)
+        image = enhancer.enhance(1.3)  # زيادة التشبع بنسبة 30%
+
+        enhancer = ImageEnhance.Contrast(image)
+        image = enhancer.enhance(1.5)  # زيادة التباين بنسبة 50%
+
+        return image
+
+    elif filter_name == 'Ahmed Ali':
+        enhancer = ImageEnhance.Color(image)
+        image = enhancer.enhance(1.0)  # بدون تغيير في التشبع
+
+        enhancer = ImageEnhance.Contrast(image)
+        image = enhancer.enhance(1.2)  # زيادة التباين بنسبة 20%
+
+        enhancer = ImageEnhance.Brightness(image)
+        image = enhancer.enhance(1.1)  # زيادة السطوع بنسبة 10%
+
+        return image
+
+    elif filter_name == 'Orange tea':
+        enhancer = ImageEnhance.Color(image)
+        image = enhancer.enhance(1.5)  # زيادة التشبع بنسبة 50%
+
+        enhancer = ImageEnhance.Contrast(image)
+        image = enhancer.enhance(1.3)  # زيادة التباين بنسبة 30%
+
+        return image
+
+    elif filter_name == 'Anime':
+        enhancer = ImageEnhance.Color(image)
+        image = enhancer.enhance(1.2)  # زيادة التشبع بنسبة 20%
+
+        enhancer = ImageEnhance.Contrast(image)
+        image = enhancer.enhance(1.5)  # زيادة التباين بنسبة 50%
+
+        return image
+
+    elif filter_name == 'Estetic':
+        enhancer = ImageEnhance.Color(image)
+        image = enhancer.enhance(1.1)  # زيادة التشبع بنسبة 10%
+
+        enhancer = ImageEnhance.Contrast(image)
+        image = enhancer.enhance(1.2)  # زيادة التباين بنسبة 20%
+
+        return image
+
+    elif filter_name == 'ProPortrait':
+        enhancer = ImageEnhance.Color(image)
+        image = enhancer.enhance(1.3)  # زيادة التشبع بنسبة 30%
+
+        enhancer = ImageEnhance.Contrast(image)
+        image = enhancer.enhance(1.5)  # زيادة التباين بنسبة 50%
+
+        return image
+
+    elif filter_name == 'iPhone 15 pro':
+        enhancer = ImageEnhance.Color(image)
+        image = enhancer.enhance(1.4)  # زيادة التشبع بنسبة 40%
+
+        enhancer = ImageEnhance.Contrast(image)
+        image = enhancer.enhance(1.3)  # زيادة التباين بنسبة 30%
+
+        enhancer = ImageEnhance.Brightness(image)
+        image = enhancer.enhance(1.2)  # زيادة السطوع بنسبة 20%
+
+        return image
+
+    elif filter_name == 'Vivi':
+        enhancer = ImageEnhance.Color(image)
+        image = enhancer.enhance(1.2)  # زيادة التشبع بنسبة 20%
+
+        enhancer = ImageEnhance.Contrast(image)
+        image = enhancer.enhance(1.4)  # زيادة التباين بنسبة 40%
+
+        return image
+
+    elif filter_name == 'CineStyle':
+        enhancer = ImageEnhance.Color(image)
+        image = enhancer.enhance(1.3)  # زيادة التشبع بنسبة 30%
+
+        enhancer = ImageEnhance.Contrast(image)
+        image = enhancer.enhance(1.5)  # زيادة التباين بنسبة 50%
+
+        return image
+
+    elif filter_name == 'Sam Kolder':
+        enhancer = ImageEnhance.Color(image)
+        image = enhancer.enhance(1.1)  # زيادة التشبع بنسبة 10%
+
+        enhancer = ImageEnhance.Contrast(image)
+        image = enhancer.enhance(1.3)  # زيادة التباين بنسبة 30%
+
+        return image
+
+    elif filter_name == 'Bright Sky':
+        enhancer = ImageEnhance.Color(image)
+        image = enhancer.enhance(1.4)  # زيادة التشبع بنسبة 40%
+
+        enhancer = ImageEnhance.Contrast(image)
+        image = enhancer.enhance(1.2)  # زيادة التباين بنسبة 20%
+
+        return image
+
+    elif filter_name == 'Dark 2024':
+        enhancer = ImageEnhance.Color(image)
+        image = enhancer.enhance(0.8)  # تقليل التشبع بنسبة 20%
+
+        enhancer = ImageEnhance.Contrast(image)
+        image = enhancer.enhance(1.5)  # زيادة التباين بنسبة 50%
+
+        enhancer = ImageEnhance.Brightness(image)
+        image = enhancer.enhance(0.7)  # تقليل السطوع بنسبة 30%
+
+        return image
+
+    elif filter_name == '16-3-':
+        enhancer = ImageEnhance.Color(image)
+        image = enhancer.enhance(1.2)  # زيادة التشبع بنسبة 20%
+
+        enhancer = ImageEnhance.Contrast(image)
+        image = enhancer.enhance(1.3)  # زيادة التباين بنسبة 30%
+
+        return image
+
+    elif filter_name == 'Cinematic Night':
+        enhancer = ImageEnhance.Color(image)
+        image = enhancer.enhance(1.5)  # زيادة التشبع بنسبة 50%
+
+        enhancer = ImageEnhance.Contrast(image)
+        image = enhancer.enhance(1.4)  # زيادة التباين بنسبة 40%
+
+        return image
+
+    elif filter_name == 'Deep Fall':
+        enhancer = ImageEnhance.Color(image)
+        image = enhancer.enhance(1.1)  # زيادة التشبع بنسبة 10%
+
+        enhancer = ImageEnhance.Contrast(image)
+        image = enhancer.enhance(1.4)  # زيادة التباين بنسبة 40%
+
+        return image
+
+    elif filter_name == 'Blue Lake':
+        enhancer = ImageEnhance.Color(image)
+        image = enhancer.enhance(1.2)  # زيادة التشبع بنسبة 20%
+
+        enhancer = ImageEnhance.Contrast(image)
+        image = enhancer.enhance(1.3)  # زيادة التباين بنسبة 30%
+
+        return image
+
+    elif filter_name == 'Smooth Face':
+        enhancer = ImageEnhance.Sharpness(image)
+        image = enhancer.enhance(0.5)  # تقليل الحدة بنسبة 50%
+
+        enhancer = ImageEnhance.Brightness(image)
+        image = enhancer.enhance(1.1)  # زيادة السطوع بنسبة 10%
+
+        return image
+
     else:
         return image
 
 def send_filters_keyboard(update: Update, context: CallbackContext) -> None:
     keyboard = [
         [InlineKeyboardButton("Mocha", callback_data='Mocha')],
+        [InlineKeyboardButton("Shades of Wat...", callback_data='Shades of Wat...')],
+        [InlineKeyboardButton("Blue Film", callback_data='Blue Film')],
+        [InlineKeyboardButton("Iron", callback_data='Iron')],
+        [InlineKeyboardButton("The Darkest H", callback_data='The Darkest H')],
+        [InlineKeyboardButton("iPhone 14 Pro", callback_data='iPhone 14 Pro')],
+        [InlineKeyboardButton("Top Gun Mave...", callback_data='Top Gun Mave...')],
+        [InlineKeyboardButton("Black Tone", callback_data='Black Tone')],
+        [InlineKeyboardButton("Retro Fashion", callback_data='Retro Fashion')],
+        [InlineKeyboardButton("Cinematic", callback_data='Cinematic')],
+        [InlineKeyboardButton("filmlook", callback_data='filmlook')],
+        [InlineKeyboardButton("CINEMA", callback_data='CINEMA')],
+        [InlineKeyboardButton("Ahmed Ali", callback_data='Ahmed Ali')],
+        [InlineKeyboardButton("Orange tea", callback_data='Orange tea')],
+        [InlineKeyboardButton("Anime", callback_data='Anime')],
+        [InlineKeyboardButton("Estetic", callback_data='Estetic')],
+        [InlineKeyboardButton("ProPortrait", callback_data='ProPortrait')],
+        [InlineKeyboardButton("iPhone 15 pro", callback_data='iPhone 15 pro')],
+        [InlineKeyboardButton("Vivi", callback_data='Vivi')],
+        [InlineKeyboardButton("CineStyle", callback_data='CineStyle')],
+        [InlineKeyboardButton("Sam Kolder", callback_data='Sam Kolder')],
+        [InlineKeyboardButton("Bright Sky", callback_data='Bright Sky')],
+        [InlineKeyboardButton("Dark 2024", callback_data='Dark 2024')],
+        [InlineKeyboardButton("16-3-", callback_data='16-3-')],
+        [InlineKeyboardButton("Cinematic Night", callback_data='Cinematic Night')],
+        [InlineKeyboardButton("Deep Fall", callback_data='Deep Fall')],
+        [InlineKeyboardButton("Blue Lake", callback_data='Blue Lake')],
+        [InlineKeyboardButton("Smooth Face", callback_data='Smooth Face')],
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     update.message.reply_text('اختر أحد الفلاتر الآتية:', reply_markup=reply_markup)

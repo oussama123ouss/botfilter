@@ -20,7 +20,20 @@ def start(update: Update, context: CallbackContext) -> None:
 
 def apply_filter(image: Image.Image, filter_name: str) -> Image.Image:
     if filter_name == 'Mocha':
-        return image.convert('L')
+        # تأثير مشابه لتأثير Pine
+        # 1. زياده التباين
+        enhancer = ImageEnhance.Contrast(image)
+        image = enhancer.enhance(1.2)  # زيادة التباين بنسبة 20%
+
+        # 2. زياده التشبع
+        enhancer = ImageEnhance.Color(image)
+        image = enhancer.enhance(1.2)  # زيادة التشبع بنسبة 20%
+
+        # 3. تفتيح الصورة قليلاً
+        enhancer = ImageEnhance.Brightness(image)
+        image = enhancer.enhance(1.1)  # زيادة السطوع بنسبة 10%
+
+        return image
     elif filter_name == 'Shades of Wat...':
         return image.filter(ImageFilter.GaussianBlur(5))
     elif filter_name == 'Blue Film':
@@ -33,9 +46,8 @@ def apply_filter(image: Image.Image, filter_name: str) -> Image.Image:
         enhancer = ImageEnhance.Brightness(image)
         return enhancer.enhance(0.5)
     elif filter_name == 'iPhone 14 Pro':
-        # الفلتر مع تشبع الألوان
         enhancer = ImageEnhance.Color(image)
-        image = enhancer.enhance(1.5)  # زيادة التشبع بمقدار 50%
+        image = enhancer.enhance(1.5)  # زيادة التشبع بنسبة 50%
         return image
     elif filter_name == 'Top Gun Mave...':
         enhancer = ImageEnhance.Color(image)

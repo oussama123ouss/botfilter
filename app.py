@@ -3,16 +3,9 @@ from telebot import types
 from PIL import Image
 import requests
 from io import BytesIO
-import logging
-
-# Logging setup
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger()
 
 # Replace "YOUR_BOT_API_TOKEN" with your actual bot API token
 BOT_TOKEN = "6987466658:AAEWjl7aoa_LSqQSx0s4REM5gyT6vUz_6sc"
-
-logger.info(f"Bot API token found: {BOT_TOKEN[:5]}...")  # Print part of the token for verification
 
 # Initialize the bot
 bot = telebot.TeleBot(BOT_TOKEN)

@@ -4,7 +4,6 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackQueryHandler, CallbackContext
 from PIL import Image, ImageEnhance, ImageFilter
 import io
-import random
 
 # API Key
 API_KEY = '6987466658:AAEWjl7aoa_LSqQSx0s4REM5gyT6vUz_6sc'
@@ -20,17 +19,20 @@ def start(update: Update, context: CallbackContext) -> None:
     update.message.reply_text("مرحباً! أرسل صورة لتطبيق الفلاتر عليها.")
 
 def apply_filter(image: Image.Image, filter_name: str) -> Image.Image:
-    if filter_name == 'Grain':
-        grain_amount = 100
-        width, height = image.size
-        grain = Image.new('L', (width, height))
-        pixels = grain.load()
-        for i in range(width):
-            for j in range(height):
-                pixels[i, j] = int(random.gauss(128, grain_amount))
-        return Image.blend(image, grain.convert('RGB'), 0.2)
-    elif filter_name == 'Shades of Wat...':
-        return image.filter(ImageFilter.GaussianBlur(5))
+    if filter_name == 'Happy':
+        # Adjust contrast
+        enhancer_contrast = ImageEnhance.Contrast(image)
+        image = enhancer_contrast.enhance(0.5)  # -50% contrast
+
+        # Adjust saturation
+        enhancer_saturation = ImageEnhance.Color(image)
+        image = enhancer_saturation.enhance(1.4)  # +40% saturation
+
+        # Adjust vibrance
+        enhancer_vibrance = ImageEnhance.Color(image)
+        image = enhancer_vibrance.enhance(1.3)  # +30% vibrance
+
+        return image
     elif filter_name == 'Blue Film':
         r, g, b = image.split()
         r = r.point(lambda i: i * 0.5)
@@ -41,7 +43,7 @@ def apply_filter(image: Image.Image, filter_name: str) -> Image.Image:
 
 def send_filters_keyboard(update: Update, context: CallbackContext) -> None:
     keyboard = [
-        [InlineKeyboardButton("Grain", callback_data='Grain'), InlineKeyboardButton("Shades of Wat...", callback_data='Shades of Wat...')],
+        [InlineKeyboardButton("Grain", callback_data='Grain'), InlineKeyboardButton("Happy", callback_data='Happy')],
         [InlineKeyboardButton("Blue Film", callback_data='Blue Film'), InlineKeyboardButton("Iron", callback_data='Iron')],
         [InlineKeyboardButton("The Darkest H...", callback_data='The Darkest H...'), InlineKeyboardButton("iPhone 14 Pro", callback_data='iPhone 14 Pro')],
         [InlineKeyboardButton("Top Gun Mave...", callback_data='Top Gun Mave...'), InlineKeyboardButton("Black Tone", callback_data='Black Tone')],

@@ -3,18 +3,14 @@ from telebot import types
 from PIL import Image, ImageDraw, ImageFont, ImageEnhance, ImageFilter
 import requests
 from io import BytesIO
-import os
 import logging
 
 # Logging setup
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
 
-# Get the bot token from environment variables
-BOT_TOKEN = os.getenv("BOT_API_TOKEN")
-if not BOT_TOKEN:
-    logger.error("Bot API token not found. Please set BOT_API_TOKEN environment variable.")
-    exit(1)
+# Replace "YOUR_BOT_API_TOKEN" with your actual bot API token
+BOT_TOKEN = "6987466658:AAEWjl7aoa_LSqQSx0s4REM5gyT6vUz_6sc"
 
 logger.info(f"Bot API token found: {BOT_TOKEN[:5]}...")  # Print part of the token for verification
 

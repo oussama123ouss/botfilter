@@ -1,4 +1,4 @@
-import os
+import logging
 from PIL import Image, ImageFilter, ImageEnhance
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackQueryHandler, CallbackContext
@@ -20,8 +20,16 @@ FILTERS = [
 # مفتاح API الخاص بالبوت
 API_KEY = '6987466658:AAEWjl7aoa_LSqQSx0s4REM5gyT6vUz_6sc'
 
+# إعداد التسجيل
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                    level=logging.INFO)
+
+logger = logging.getLogger(__name__)
+
 # دالة بدء البوت
 def start(update: Update, context: CallbackContext) -> None:
+    user = update.message.from_user
+    logger.info(f"User {user.first_name} started the bot.")
     update.message.reply_text('مرحبًا! أرسل صورة لتطبيق الفلاتر عليها.')
 
 # دالة لاستلام الصور
@@ -29,6 +37,7 @@ def handle_photo(update: Update, context: CallbackContext) -> None:
     photo_file = update.message.photo[-1].get_file()
     photo_path = 'received_image.jpg'
     photo_file.download(photo_path)
+    logger.info("Photo received and downloaded.")
 
     # إنشاء قائمة الأزرار للفلاتر
     keyboard = [[InlineKeyboardButton(flt[0], callback_data=flt[0])] for flt in FILTERS]
@@ -50,6 +59,7 @@ def apply_filter(image_path, filter_name):
 
     output_path = 'output_image.jpg'
     img.save(output_path)
+    logger.info(f"Filter {filter_name} applied and image saved.")
     return output_path
 
 # دالة لاختيار الفلتر
@@ -67,7 +77,7 @@ def filter_callback(update: Update, context: CallbackContext) -> None:
 
 def main() -> None:
     # إعداد البوت باستخدام مفتاح الـ API
-    updater = Updater(API_KEY)
+    updater = Updater(API_KEY, use_context=True)
 
     dispatcher = updater.dispatcher
 

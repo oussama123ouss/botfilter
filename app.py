@@ -1,30 +1,39 @@
 import os
+from PIL import Image, ImageFilter, ImageEnhance
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackQueryHandler
-from PIL import Image, ImageEnhance, ImageFilter
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackQueryHandler, CallbackContext
 
-# استبدل هذا بالرمز الخاص بك من BotFather
-TELEGRAM_API_TOKEN = '6987466658:AAEWjl7aoa_LSqQSx0s4REM5gyT6vUz_6sc'
-
-# قائمة الفلاتر المتاحة
+# قائمة الفلاتر
 FILTERS = [
-    ('Mocha', ImageFilter.BLUR), 
+    ('Mocha', ImageFilter.CONTOUR),
     ('Orange Teal', ImageEnhance.Color),
-    # أضف المزيد من الفلاتر هنا...
+    ('Blur', ImageFilter.BLUR),
+    ('Detail', ImageFilter.DETAIL),
+    ('Edge Enhance', ImageFilter.EDGE_ENHANCE),
+    ('Emboss', ImageFilter.EMBOSS),
+    ('Sharpen', ImageFilter.SHARPEN),
+    ('Brightness', ImageEnhance.Brightness),
+    ('Contrast', ImageEnhance.Contrast),
+    ('Sharpness', ImageEnhance.Sharpness),
 ]
 
-def start(update: Update, context):
-    update.message.reply_text('مرحباً! أرسل صورة لاستخدام الفلاتر.')
+# دالة بدء البوت
+def start(update: Update, context: CallbackContext) -> None:
+    update.message.reply_text('مرحبًا! أرسل صورة لتطبيق الفلاتر عليها.')
 
-def handle_photo(update: Update, context):
-    photo = update.message.photo[-1].get_file()
-    photo.download('received_image.jpg')
+# دالة لاستلام الصور
+def handle_photo(update: Update, context: CallbackContext) -> None:
+    photo_file = update.message.photo[-1].get_file()
+    photo_path = 'received_image.jpg'
+    photo_file.download(photo_path)
 
+    # إنشاء قائمة الأزرار للفلاتر
     keyboard = [[InlineKeyboardButton(flt[0], callback_data=flt[0])] for flt in FILTERS]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
-    update.message.reply_text('اختر فلتر لتطبيقه على الصورة:', reply_markup=reply_markup)
+    update.message.reply_text('اختر أحد الفلاتر التالية:', reply_markup=reply_markup)
 
+# دالة لتطبيق الفلتر
 def apply_filter(image_path, filter_name):
     img = Image.open(image_path)
     
@@ -32,34 +41,41 @@ def apply_filter(image_path, filter_name):
         if flt[0] == filter_name:
             if isinstance(flt[1], ImageFilter.Filter):
                 img = img.filter(flt[1])
-            elif isinstance(flt[1], ImageEnhance._Enhance):
+            elif isinstance(flt[1], type(ImageEnhance.Color(img))):
                 enhancer = flt[1](img)
-                img = enhancer.enhance(2)
+                img = enhancer.enhance(2)  # يمكنك تعديل مستوى التأثير هنا
             # أضف المزيد من الفلاتر هنا إذا لزم الأمر...
 
     output_path = 'output_image.jpg'
     img.save(output_path)
     return output_path
 
-def button(update: Update, context):
+# دالة لاختيار الفلتر
+def filter_callback(update: Update, context: CallbackContext) -> None:
     query = update.callback_query
-    query.answer()
-
     filter_name = query.data
-    output_path = apply_filter('received_image.jpg', filter_name)
-    
-    query.message.reply_photo(photo=open(output_path, 'rb'), caption=f'تم تطبيق فلتر {filter_name} بنجاح.')
 
-def main():
-    updater = Updater(TELEGRAM_API_TOKEN, use_context=True)
+    query.answer()
+    photo_path = 'received_image.jpg'
+    output_path = apply_filter(photo_path, filter_name)
 
-    dp = updater.dispatcher
-    dp.add_handler(CommandHandler("start", start))
-    dp.add_handler(MessageHandler(Filters.photo, handle_photo))
-    dp.add_handler(CallbackQueryHandler(button))
+    # إرسال الصورة بعد تطبيق الفلتر
+    query.message.reply_photo(photo=open(output_path, 'rb'))
+    query.message.reply_text(f'تمت إضافة التأثير بنجاح: {filter_name}')
 
+def main() -> None:
+    # إعداد البوت باستخدام التوكن الخاص بك
+    updater = Updater("6987466658:AAEWjl7aoa_LSqQSx0s4REM5gyT6vUz_6sc")
+
+    dispatcher = updater.dispatcher
+
+    dispatcher.add_handler(CommandHandler("start", start))
+    dispatcher.add_handler(MessageHandler(Filters.photo, handle_photo))
+    dispatcher.add_handler(CallbackQueryHandler(filter_callback))
+
+    # بدء البوت
     updater.start_polling()
     updater.idle()
 
-if name == 'main':
+if __name__ == '__main__':
     main()

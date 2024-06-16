@@ -2,7 +2,7 @@ import os
 import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackQueryHandler, CallbackContext
-from PIL import Image, ImageEnhance, ImageFilter
+from PIL import Image, ImageEnhance, ImageFilter, ImageOps
 import io
 
 # API Key
@@ -21,17 +21,19 @@ def start(update: Update, context: CallbackContext) -> None:
 def apply_filter(image: Image.Image, filter_name: str) -> Image.Image:
     if filter_name == 'Mocha':
         # تأثير مشابه لتأثير Pine
-        # 1. زياده التباين
+        # 1. زيادة التشبع
+        enhancer = ImageEnhance.Color(image)
+        image = enhancer.enhance(1.3)  # زيادة التشبع بنسبة 30%
+
+        # 2. إضافة تباين
         enhancer = ImageEnhance.Contrast(image)
         image = enhancer.enhance(1.2)  # زيادة التباين بنسبة 20%
 
-        # 2. زياده التشبع
-        enhancer = ImageEnhance.Color(image)
-        image = enhancer.enhance(1.2)  # زيادة التشبع بنسبة 20%
-
-        # 3. تفتيح الصورة قليلاً
-        enhancer = ImageEnhance.Brightness(image)
-        image = enhancer.enhance(1.1)  # زيادة السطوع بنسبة 10%
+        # 3. إضافة دفء للألوان
+        r, g, b = image.split()
+        r = r.point(lambda i: i * 1.2)
+        g = g.point(lambda i: i * 1.1)
+        image = Image.merge('RGB', (r, g, b))
 
         return image
     elif filter_name == 'Shades of Wat...':

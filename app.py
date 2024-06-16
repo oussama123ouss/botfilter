@@ -12,11 +12,9 @@ bot = telebot.TeleBot(BOT_TOKEN)
 
 # Filter URLs
 filter_urls = {
-    "فلتر رقم 1": "https://drive.google.com/uc?export=download&id=14S6bx7deeUyqdcDSwFWQH3iOIhkAUEJ5",
-    "فلتر رقم 2": "https://drive.google.com/uc?export=download&id=14S6c4TiDBbU87HvPOr8yxG0ePdp9dsCC",
-    "فلتر رقم 3": "https://drive.google.com/uc?export=download&id=14fmZrMoIzNp3YBVP21vMKcGxum150-Uf",
-    "فلتر رقم 4": "https://drive.google.com/uc?export=download&id=14nDCF8zHKChe6lfqNp-2MlvjvHni9WYD",
-    "فلتر رقم 5": "https://drive.google.com/uc?export=download&id=14Pdw8K_ndshzC9F9V4hqSYyOE82apdwV"
+    "فلتر رقم 1": "https://i.imgur.com/e5soSll.png",
+    "فلتر رقم 2": "https://i.imgur.com/y0a3h1P.png",
+    "فلتر رقم 3": "https://i.imgur.com/gT8Rjx1.png"
 }
 
 # Function to apply a filter to an image

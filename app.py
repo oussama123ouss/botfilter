@@ -1,6 +1,6 @@
 import telebot
 from telebot import types
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageEnhance, ImageFilter
 import requests
 from io import BytesIO
 import os
@@ -11,15 +11,17 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
 
 # Get the bot token from environment variables
-BOT_TOKEN = os.getenv("6987466658:AAEWjl7aoa_LSqQSx0s4REM5gyT6vUz_6sc")
+BOT_TOKEN = os.getenv("BOT_API_TOKEN")
 if not BOT_TOKEN:
     logger.error("Bot API token not found. Please set BOT_API_TOKEN environment variable.")
     exit(1)
 
+logger.info(f"Bot API token found: {BOT_TOKEN[:5]}...")  # Print part of the token for verification
+
 # Initialize the bot
 bot = telebot.TeleBot(BOT_TOKEN)
 
-# Load the filters
+# Filter URLs
 filter_urls = {
     "فلتر رقم 1": "https://drive.google.com/uc?export=download&id=14S6bx7deeUyqdcDSwFWQH3iOIhkAUEJ5",
     "فلتر رقم 2": "https://drive.google.com/uc?export=download&id=14S6c4TiDBbU87HvPOr8yxG0ePdp9dsCC",
@@ -28,75 +30,74 @@ filter_urls = {
     "فلتر رقم 5": "https://drive.google.com/uc?export=download&id=14Pdw8K_ndshzC9F9V4hqSYyOE82apdwV"
 }
 
-filters = {}
-for name, url in filter_urls.items():
-    try:
-        response = requests.get(url)
-        filter_image = Image.open(BytesIO(response.content)).convert("RGBA")
-        filters[name] = filter_image
-    except Exception as e:
-        logger.error(f"Failed to load filter {name}: {e}")
+# Function to apply a filter to an image
+def apply_filter(image, filter_id):
+    filter_url = filter_urls[filter_id]
+    filter_image_bytes = requests.get(filter_url).content
+    filter_image = Image.open(BytesIO(filter_image_bytes)).convert("RGBA")
 
-# Function to apply filter to an image
-def apply_filter_to_image(image, filter_image):
+    # Resize filter image to match the input image size
     filter_image = filter_image.resize(image.size)
-    return Image.alpha_composite(image.convert("RGBA"), filter_image)
 
-# Dictionary to store user images
-user_images = {}
+    # Apply the filter (overlay with transparency)
+    combined_image = Image.alpha_composite(image.convert("RGBA"), filter_image)
+
+    # Save the modified image
+    output_buffer = BytesIO()
+    combined_image.save(output_buffer, format='PNG')
+    output_buffer.seek(0)
+    
+    return output_buffer
+
+# Dictionary to store user photos
+user_photos = {}
 
 # Handler for the /start command
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
-    try:
-        bot.send_message(message.chat.id, 
-                         "أهلاً بك!\n"
-                         "قم بإرسال صورة وسنقوم بإضافة الفلتر الذي تختاره.\n"
-                         "اختر أحد الفلاتر بعد إرسال الصورة.")
-    except Exception as e:
-        logger.error(f"Error in send_welcome: {e}")
+    bot.send_message(message.chat.id, "أهلاً بك! أرسل صورة ليتم تطبيق الفلتر عليها.")
 
 # Handler for photo messages
 @bot.message_handler(content_types=['photo'])
 def handle_photo(message):
-    try:
-        file_info = bot.get_file(message.photo[-1].file_id)
-        downloaded_file = bot.download_file(file_info.file_path)
-        image = Image.open(BytesIO(downloaded_file))
-        user_images[message.chat.id] = image
+    file_id = message.photo[-1].file_id
+    file_info = bot.get_file(file_id)
+    file_bytes = requests.get(f'https://api.telegram.org/file/bot{BOT_TOKEN}/{file_info.file_path}').content
 
-        filter_keyboard = types.InlineKeyboardMarkup(row_width=3)
-        buttons = [types.InlineKeyboardButton(name, callback_data=name) for name in filter_urls]
-        
-        for i in range(0, len(buttons), 3):
-            filter_keyboard.add(*buttons[i:i + 3])
-
-        bot.send_message(message.chat.id, "اختر أحد الفلاتر التالية:", reply_markup=filter_keyboard)
-    except Exception as e:
-        logger.error(f"Error in handle_photo: {e}")
+    user_photos[message.chat.id] = Image.open(BytesIO(file_bytes))
+    
+    filter_keyboard = types.InlineKeyboardMarkup(row_width=2)
+    buttons = [types.InlineKeyboardButton(filter_name, callback_data=filter_name) for filter_name in filter_urls]
+    
+    for i in range(0, len(buttons), 2):
+        filter_keyboard.add(*buttons[i:i + 2])
+    
+    bot.send_message(message.chat.id, "اختر فلتر لتطبيقه على الصورة:", reply_markup=filter_keyboard)
 
 # Handler for callback queries
 @bot.callback_query_handler(func=lambda call: True)
 def callback_query(call):
     user_id = call.message.chat.id
-    if user_id in user_images:
-        user_image = user_images[user_id]
-        filter_name = call.data
-        filter_image = filters.get(filter_name)
-        if filter_image:
-            try:
-                filtered_image = apply_filter_to_image(user_image, filter_image)
-                output_buffer = BytesIO()
-                filtered_image.save(output_buffer, format='PNG')
-                output_buffer.seek(0)
-                bot.send_photo(user_id, output_buffer, caption=f"تم تطبيق {filter_name} على صورتك.")
-            except Exception as e:
-                logger.error(f"Error applying filter {filter_name} to image: {e}")
-                bot.send_message(user_id, "خطأ في تطبيق الفلتر. الرجاء المحاولة مرة أخرى.")
+    filter_id = call.data
+
+    if user_id in user_photos:
+        image = user_photos[user_id]
+        filtered_image = apply_filter(image, filter_id)
+        
+        if filtered_image:
+            bot.send_photo(user_id, filtered_image, caption="🤩 تم تطبيق الفلتر على صورتك!")
         else:
             bot.send_message(user_id, "خطأ في تطبيق الفلتر. الرجاء المحاولة مرة أخرى.")
+        
+        del user_photos[user_id]  # Remove the image from memory
     else:
-        bot.send_message(user_id, "لم يتم العثور على صورة. الرجاء إرسال صورة أولاً.")
+        bot.send_message(user_id, "لم أتمكن من العثور على صورتك. الرجاء إرسال الصورة مرة أخرى.")
+    
+    # Delete the message prompting the user to choose a filter
+    try:
+        bot.delete_message(user_id, call.message.message_id)
+    except telebot.apihelper.ApiTelegramException as e:
+        logger.error(f"Error deleting message: {e}")
 
 # Start polling
 try:

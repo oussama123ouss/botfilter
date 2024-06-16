@@ -46,7 +46,7 @@ def apply_filter(image: Image.Image, filter_name: str) -> Image.Image:
         r, g, b = image.split()
         r = r.point(lambda i: i * 1.0)  # No change to red channel
         g = g.point(lambda i: i * 1.0)  # No change to green channel
-        b = b.point(lambda i: i * 0.0)  # -100% blue channel (cooling effect)
+        b = b.point(lambda i: i * 0.5)  # -50% blue channel (cooling effect)
         return Image.merge('RGB', (r, g, b))
     # Add other filters as per your existing implementation
     else:

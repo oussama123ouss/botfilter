@@ -1,65 +1,65 @@
-import telebot
-import requests
-from PIL import Image, ImageFilter
-from io import BytesIO
+import os
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackQueryHandler
+from PIL import Image, ImageEnhance, ImageFilter
 
-# Replace with your Telegram bot API token
-bot = telebot.TeleBot("6987466658:AAEWjl7aoa_LSqQSx0s4REM5gyT6vUz_6sc")
+# استبدل هذا بالرمز الخاص بك من BotFather
+TELEGRAM_API_TOKEN = '6987466658:AAEWjl7aoa_LSqQSx0s4REM5gyT6vUz_6sc'
 
-# URLs for filters .cube files
-filter_urls = {
-    "Filter 1": "https://drive.google.com/uc?export=download&id=14S6bx7deeUyqdcDSwFWQH3iOIhkAUEJ5",
-    "Filter 2": "https://drive.google.com/uc?export=download&id=14S6c4TiDBbU87HvPOr8yxG0ePdp9dsCC",
-    "Filter 3": "https://drive.google.com/uc?export=download&id=14fmZrMoIzNp3YBVP21vMKcGxum150-Uf",
-    "Filter 4": "https://drive.google.com/uc?export=download&id=14nDCF8zHKChe6lfqNp-2MlvjvHni9WYD",
-    "Filter 5": "https://drive.google.com/uc?export=download&id=14Pdw8K_ndshzC9F9V4hqSYyOE82apdwV"
-}
+# قائمة الفلاتر المتاحة
+FILTERS = [
+    ('Mocha', ImageFilter.BLUR), 
+    ('Orange Teal', ImageEnhance.Color),
+    # أضف المزيد من الفلاتر هنا...
+]
 
-# Function to apply filter .cube to image
-def apply_filter_to_image(image, filter_url):
-    # Download the filter .cube file
-    filter_file = requests.get(filter_url).content
+def start(update: Update, context):
+    update.message.reply_text('مرحباً! أرسل صورة لاستخدام الفلاتر.')
+
+def handle_photo(update: Update, context):
+    photo = update.message.photo[-1].get_file()
+    photo.download('received_image.jpg')
+
+    keyboard = [[InlineKeyboardButton(flt[0], callback_data=flt[0])] for flt in FILTERS]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    update.message.reply_text('اختر فلتر لتطبيقه على الصورة:', reply_markup=reply_markup)
+
+def apply_filter(image_path, filter_name):
+    img = Image.open(image_path)
     
-    # Apply the filter to the image
-    with Image.open(BytesIO(filter_file)) as filter_image:
-        filtered_image = Image.new("RGB", image.size)
-        filtered_image.paste(image)
-        filtered_image = Image.blend(filtered_image, filter_image, alpha=0.5)  # Adjust alpha as needed
-        
-    return filtered_image
+    for flt in FILTERS:
+        if flt[0] == filter_name:
+            if isinstance(flt[1], ImageFilter.Filter):
+                img = img.filter(flt[1])
+            elif isinstance(flt[1], ImageEnhance._Enhance):
+                enhancer = flt[1](img)
+                img = enhancer.enhance(2)
+            # أضف المزيد من الفلاتر هنا إذا لزم الأمر...
 
-# Handler for /start command
-@bot.message_handler(commands=['start'])
-def send_welcome(message):
-    bot.reply_to(message, "Welcome to Image Filter Bot! Send me a photo to apply a filter.")
+    output_path = 'output_image.jpg'
+    img.save(output_path)
+    return output_path
 
-# Handler for receiving images
-@bot.message_handler(content_types=['photo'])
-def handle_photo(message):
-    try:
-        # Download the photo
-        file_id = message.photo[-1].file_id
-        file_info = bot.get_file(file_id)
-        file_url = f"https://api.telegram.org/file/bot{bot.token}/{file_info.file_path}"
-        
-        # Open the image from URL
-        image = Image.open(BytesIO(requests.get(file_url).content))
-        
-        # Example: Apply Filter 1 to the image
-        filter_name = "Filter 1"
-        filtered_image = apply_filter_to_image(image, filter_urls[filter_name])
-        
-        # Convert filtered image to bytes
-        output_buffer = BytesIO()
-        filtered_image.save(output_buffer, format='JPEG')
-        output_buffer.seek(0)
-        
-        # Send the filtered image back to the user
-        bot.send_photo(message.chat.id, output_buffer)
+def button(update: Update, context):
+    query = update.callback_query
+    query.answer()
+
+    filter_name = query.data
+    output_path = apply_filter('received_image.jpg', filter_name)
     
-    except Exception as e:
-        print(f"Error processing photo: {e}")
-        bot.reply_to(message, "Sorry, something went wrong processing the photo.")
+    query.message.reply_photo(photo=open(output_path, 'rb'), caption=f'تم تطبيق فلتر {filter_name} بنجاح.')
 
-# Start the bot
-bot.polling()
+def main():
+    updater = Updater(TELEGRAM_API_TOKEN, use_context=True)
+
+    dp = updater.dispatcher
+    dp.add_handler(CommandHandler("start", start))
+    dp.add_handler(MessageHandler(Filters.photo, handle_photo))
+    dp.add_handler(CallbackQueryHandler(button))
+
+    updater.start_polling()
+    updater.idle()
+
+if name == 'main':
+    main()

@@ -34,23 +34,23 @@ def apply_filter(image: Image.Image, filter_name: str) -> Image.Image:
         return enhancer.enhance(0.5)
     elif filter_name == 'iPhone 14 Pro':
         # الفلتر الجديد بناءً على التفاصيل المقدمة
-        # Exposure (using Brightness enhancement)
+        # 1. Exposure (using Brightness enhancement)
         enhancer = ImageEnhance.Brightness(image)
         image = enhancer.enhance(1.23)  # +23%
 
-        # Contrast
+        # 2. Contrast
         enhancer = ImageEnhance.Contrast(image)
         image = enhancer.enhance(0.0)  # -100%
 
-        # Brightness
+        # 3. Brightness
         enhancer = ImageEnhance.Brightness(image)
         image = enhancer.enhance(0.77)  # -23%
 
-        # Saturation (Color enhancement)
+        # 4. Saturation (Color enhancement)
         enhancer = ImageEnhance.Color(image)
         image = enhancer.enhance(1.99)  # +99%
 
-        # Vibrance (Color enhancement, not directly available in Pillow, approximated with slight color enhancement)
+        # 5. Vibrance (Color enhancement, not directly available in Pillow, approximated with slight color enhancement)
         enhancer = ImageEnhance.Color(image)
         image = enhancer.enhance(1.19)  # +19%
 

@@ -1,104 +1,77 @@
 import telebot
 from telebot import types
-from PIL import Image, ImageFilter
+from PIL import Image, ImageDraw, ImageFont
 import requests
 from io import BytesIO
 
 # Replace "YOUR_BOT_API_TOKEN" with your actual bot API token
 bot = telebot.TeleBot("6987466658:AAEWjl7aoa_LSqQSx0s4REM5gyT6vUz_6sc")
 
-# Filter URLs
+# Load the filters
 filter_urls = {
-    "الفلتر 1": "https://drive.google.com/uc?export=download&id=1CAJCmGqhtOBzDCKNpJsM6V8saAFpwHD9",
-    "الفلتر 2": "https://drive.google.com/uc?export=download&id=14S6c4TiDBbU87HvPOr8yxG0ePdp9dsCC",
-    "الفلتر 3": "https://drive.google.com/uc?export=download&id=14fmZrMoIzNp3YBVP21vMKcGxum150-Uf",
-    "الفلتر 4": "https://drive.google.com/uc?export=download&id=14nDCF8zHKChe6lfqNp-2MlvjvHni9WYD",
-    "الفلتر 5": "https://drive.google.com/uc?export=download&id=14Pdw8K_ndshzC9F9V4hqSYyOE82apdwV"
+    "فلتر رقم 1": "https://drive.google.com/uc?export=download&id=14S6bx7deeUyqdcDSwFWQH3iOIhkAUEJ5",
+    "فلتر رقم 2": "https://drive.google.com/uc?export=download&id=14S6c4TiDBbU87HvPOr8yxG0ePdp9dsCC",
+    "فلتر رقم 3": "https://drive.google.com/uc?export=download&id=14fmZrMoIzNp3YBVP21vMKcGxum150-Uf",
+    "فلتر رقم 4": "https://drive.google.com/uc?export=download&id=14nDCF8zHKChe6lfqNp-2MlvjvHni9WYD",
+    "فلتر رقم 5": "https://drive.google.com/uc?export=download&id=14Pdw8K_ndshzC9F9V4hqSYyOE82apdwV"
 }
 
+filters = {}
+for name, url in filter_urls.items():
+    response = requests.get(url)
+    filter_image = Image.open(BytesIO(response.content)).convert("RGBA")
+    filters[name] = filter_image
+
 # Function to apply filter to an image
-def apply_filter(image_url, filter_name):
-    try:
-        # Download the image
-        response = requests.get(image_url)
-        image_bytes = BytesIO(response.content)
-        image = Image.open(image_bytes)
-        
-        # Apply the selected filter
-        if filter_name == "الفلتر 1":
-            filtered_image = image.filter(ImageFilter.BLUR)
-        elif filter_name == "الفلتر 2":
-            filtered_image = image.filter(ImageFilter.CONTOUR)
-        elif filter_name == "الفلتر 3":
-            filtered_image = image.filter(ImageFilter.EMBOSS)
-        elif filter_name == "الفلتر 4":
-            filtered_image = image.filter(ImageFilter.SHARPEN)
-        elif filter_name == "الفلتر 5":
-            filtered_image = image.filter(ImageFilter.SMOOTH)
-        else:
-            return None  # Invalid filter name
-        
-        # Save the filtered image to bytes
-        output_buffer = BytesIO()
-        filtered_image.save(output_buffer, format='PNG')
-        output_buffer.seek(0)
-        
-        return output_buffer
-    
-    except Exception as e:
-        print(f"Error applying filter: {e}")
-        return None
+def apply_filter_to_image(image, filter_image):
+    filter_image = filter_image.resize(image.size)
+    return Image.alpha_composite(image.convert("RGBA"), filter_image)
+
+# Dictionary to store user images
+user_images = {}
 
 # Handler for the /start command
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
-    # Create a button linking to the Telegram channel
-    channel_button = types.InlineKeyboardMarkup()
-    channel_button.add(types.InlineKeyboardButton("تابعني على تلغرام", url="https://t.me/elkhabur"))
-    
-    # Send welcome message with the button
     bot.send_message(message.chat.id, 
-                     "مرحبا عزيزي  👋\n\n"
-                     "أرسل الصورة المراد تطبيق فلاتر عليها\n\n"
-                     "الصيغ المدعومة (PNG, JPG, HEIC)\n\n"
-                   , reply_markup=channel_button)
+                     "أهلاً بك!\n"
+                     "قم بإرسال صورة وسنقوم بإضافة الفلتر الذي تختاره.\n"
+                     "اختر أحد الفلاتر بعد إرسال الصورة.")
 
-# Handler for receiving images
+# Handler for photo messages
 @bot.message_handler(content_types=['photo'])
 def handle_photo(message):
-    try:
-        # Ask user to select a filter
-        filter_keyboard = types.InlineKeyboardMarkup(row_width=1)
-        buttons = [types.InlineKeyboardButton(filter_name, callback_data=filter_name) for filter_name in filter_urls]
-        filter_keyboard.add(*buttons)
-        
-        bot.send_message(message.chat.id, "اختر أحد الفلاتر التالية لتطبيقها على الصورة:", reply_markup=filter_keyboard)
-    
-    except Exception as e:
-        print(f"Error handling photo: {e}")
+    file_info = bot.get_file(message.photo[-1].file_id)
+    downloaded_file = bot.download_file(file_info.file_path)
+    image = Image.open(BytesIO(downloaded_file))
+    user_images[message.chat.id] = image
 
-# Handler for callback queries (filter selection)
+    filter_keyboard = types.InlineKeyboardMarkup(row_width=3)
+    buttons = [types.InlineKeyboardButton(name, callback_data=name) for name in filter_urls]
+    
+    for i in range(0, len(buttons), 3):
+        filter_keyboard.add(*buttons[i:i + 3])
+
+    bot.send_message(message.chat.id, "اختر أحد الفلاتر التالية:", reply_markup=filter_keyboard)
+
+# Handler for callback queries
 @bot.callback_query_handler(func=lambda call: True)
 def callback_query(call):
-    try:
-        # Get the chosen filter and original photo
+    user_id = call.message.chat.id
+    if user_id in user_images:
+        user_image = user_images[user_id]
         filter_name = call.data
-        photo = call.message.photo[-1]
-        photo_url = f"https://api.telegram.org/file/bot{bot.token}/{bot.get_file(photo.file_id).file_path}"
-        
-        # Apply the filter
-        filtered_image = apply_filter(photo_url, filter_name)
-        
-        if filtered_image:
-            bot.send_photo(call.message.chat.id, filtered_image)
+        filter_image = filters.get(filter_name)
+        if filter_image:
+            filtered_image = apply_filter_to_image(user_image, filter_image)
+            output_buffer = BytesIO()
+            filtered_image.save(output_buffer, format='PNG')
+            output_buffer.seek(0)
+            bot.send_photo(user_id, output_buffer, caption=f"تم تطبيق {filter_name} على صورتك.")
         else:
-            bot.send_message(call.message.chat.id, "خطأ في تطبيق الفلتر. الرجاء المحاولة مرة أخرى.")
-        
-        # Delete the message prompting the user to select a filter
-        bot.delete_message(call.message.chat.id, call.message.message_id)
-    
-    except Exception as e:
-        print(f"Error handling callback query: {e}")
+            bot.send_message(user_id, "خطأ في تطبيق الفلتر. الرجاء المحاولة مرة أخرى.")
+    else:
+        bot.send_message(user_id, "لم يتم العثور على صورة. الرجاء إرسال صورة أولاً.")
 
 # Start polling
 bot.polling()

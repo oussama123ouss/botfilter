@@ -17,6 +17,9 @@ FILTERS = [
     ('Sharpness', ImageEnhance.Sharpness),
 ]
 
+# مفتاح API الخاص بالبوت
+API_KEY = '6987466658:AAEWjl7aoa_LSqQSx0s4REM5gyT6vUz_6sc'
+
 # دالة بدء البوت
 def start(update: Update, context: CallbackContext) -> None:
     update.message.reply_text('مرحبًا! أرسل صورة لتطبيق الفلاتر عليها.')
@@ -44,7 +47,6 @@ def apply_filter(image_path, filter_name):
             elif isinstance(flt[1], type(ImageEnhance.Color(img))):
                 enhancer = flt[1](img)
                 img = enhancer.enhance(2)  # يمكنك تعديل مستوى التأثير هنا
-            # أضف المزيد من الفلاتر هنا إذا لزم الأمر...
 
     output_path = 'output_image.jpg'
     img.save(output_path)
@@ -64,8 +66,8 @@ def filter_callback(update: Update, context: CallbackContext) -> None:
     query.message.reply_text(f'تمت إضافة التأثير بنجاح: {filter_name}')
 
 def main() -> None:
-    # إعداد البوت باستخدام التوكن الخاص بك
-    updater = Updater("6987466658:AAEWjl7aoa_LSqQSx0s4REM5gyT6vUz_6sc")
+    # إعداد البوت باستخدام مفتاح الـ API
+    updater = Updater(API_KEY)
 
     dispatcher = updater.dispatcher
 

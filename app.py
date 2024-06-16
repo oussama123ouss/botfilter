@@ -1,6 +1,6 @@
 import telebot
 from telebot import types
-from PIL import Image, ImageDraw, ImageFont, ImageEnhance, ImageFilter
+from PIL import Image
 import requests
 from io import BytesIO
 import logging

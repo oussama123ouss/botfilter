@@ -13,40 +13,43 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO
 )
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(name)
 
 def start(update: Update, context: CallbackContext) -> None:
-    update.message.reply_text("مرحباً! أرسل صورة لتطبيق الفلاتر عليها.")
+    keyboard = [
+        [InlineKeyboardButton("تابعني على تلغرام", url="https://t.me/elkhabur")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    update.message.reply_text(
+        "مرحبا عزيزي 🎉\n\n"
+        "أرسل الصورة 🖼️ المراد تطبيق فلاتر عليها 🔮\n\n"
+        "جميع الصيغ مدعومة ⚡️",
+        reply_markup=reply_markup
+    )
 
 def apply_filter(image: Image.Image, filter_name: str) -> Image.Image:
     if filter_name == 'Happy':
-        # Adjust contrast
         enhancer_contrast = ImageEnhance.Contrast(image)
-        image = enhancer_contrast.enhance(0.5)  # -50% contrast
+        image = enhancer_contrast.enhance(0.5)
 
-        # Adjust saturation
         enhancer_saturation = ImageEnhance.Color(image)
-        image = enhancer_saturation.enhance(1.4)  # +40% saturation
+        image = enhancer_saturation.enhance(1.4)
 
-        # Adjust vibrance
         enhancer_vibrance = ImageEnhance.Color(image)
-        image = enhancer_vibrance.enhance(1.3)  # +30% vibrance
+        image = enhancer_vibrance.enhance(1.3)
 
         return image
     elif filter_name == 'Blue Film':
-        # Adjust contrast
         enhancer_contrast = ImageEnhance.Contrast(image)
-        image = enhancer_contrast.enhance(0.0)  # -100% contrast
+        image = enhancer_contrast.enhance(0.0)
 
-        # Adjust saturation
         enhancer_saturation = ImageEnhance.Color(image)
-        image = enhancer_saturation.enhance(2.0)  # +100% saturation
+        image = enhancer_saturation.enhance(2.0)
 
-        # Adjust temperature (color balance)
         r, g, b = image.split()
-        r = r.point(lambda i: i * 1.0)  # No change to red channel
-        g = g.point(lambda i: i * 1.0)  # No change to green channel
-        b = b.point(lambda i: i * 0.5)  # -50% blue channel (cooling effect)
+        r = r.point(lambda i: i * 1.0)
+        g = g.point(lambda i: i * 1.0)
+        b = b.point(lambda i: i * 0.5)
         return Image.merge('RGB', (r, g, b))
     elif filter_name == 'Grain':
         return image.filter(ImageFilter.GaussianBlur(5))
@@ -57,7 +60,7 @@ def apply_filter(image: Image.Image, filter_name: str) -> Image.Image:
         return enhancer.enhance(0.5)
     elif filter_name == 'iPhone 14 Pro':
         enhancer = ImageEnhance.Color(image)
-        image = enhancer.enhance(1.5)  # Increase saturation by 50%
+        image = enhancer.enhance(1.5)
         return image
     elif filter_name == 'Top Gun Maverick':
         enhancer = ImageEnhance.Color(image)
@@ -98,7 +101,7 @@ def apply_filter(image: Image.Image, filter_name: str) -> Image.Image:
     elif filter_name == 'CineStyle':
         enhancer = ImageEnhance.Brightness(image)
         return enhancer.enhance(0.7)
-    elif filter_name == 'Sam Kolder':
+        elif filter_name == 'Sam Kolder':
         enhancer = ImageEnhance.Color(image)
         return enhancer.enhance(2.5)
     elif filter_name == 'Bright Sky':
@@ -124,20 +127,15 @@ def apply_filter(image: Image.Image, filter_name: str) -> Image.Image:
 
 def send_filters_keyboard(update: Update, context: CallbackContext) -> None:
     keyboard = [
-        [InlineKeyboardButton("Grain", callback_data='Grain'), InlineKeyboardButton("Happy", callback_data='Happy')],
-        [InlineKeyboardButton("Blue Film", callback_data='Blue Film'), InlineKeyboardButton("Iron", callback_data='Iron')],
-        [InlineKeyboardButton("The Darkest Hour", callback_data='The Darkest Hour'), InlineKeyboardButton("iPhone 14 Pro", callback_data='iPhone 14 Pro')],
-        [InlineKeyboardButton("Top Gun Maverick", callback_data='Top Gun Maverick'), InlineKeyboardButton("Black Tone", callback_data='Black Tone')],
-        [InlineKeyboardButton("Retro Fashion", callback_data='Retro Fashion'), InlineKeyboardButton("Cinematic", callback_data='Cinematic')],
-        [InlineKeyboardButton("filmlook", callback_data='filmlook'), InlineKeyboardButton("CINEMA", callback_data='CINEMA')],
-        [InlineKeyboardButton("Ahmed Ali", callback_data='Ahmed Ali'), InlineKeyboardButton("Orange teal", callback_data='Orange teal')],
-        [InlineKeyboardButton("Anime", callback_data='Anime'), InlineKeyboardButton("Estetic", callback_data='Estetic')],
-        [InlineKeyboardButton("ProPortrait", callback_data='ProPortrait'), InlineKeyboardButton("iPhone 15 pro", callback_data='iPhone 15 pro')],
-        [InlineKeyboardButton("Vivi", callback_data='Vivi'), InlineKeyboardButton("CineStyle", callback_data='CineStyle')],
-        [InlineKeyboardButton("Sam Kolder", callback_data='Sam Kolder'), InlineKeyboardButton("Bright Sky", callback_data='Bright Sky')],
-        [InlineKeyboardButton("Dark 2024", callback_data='Dark 2024'), InlineKeyboardButton("Cinematic Night", callback_data='Cinematic Night')],
-        [InlineKeyboardButton("Deep Fall", callback_data='Deep Fall'), InlineKeyboardButton("Blue Lake", callback_data='Blue Lake')],
-        [InlineKeyboardButton("Smooth Face", callback_data='Smooth Face')]
+        [InlineKeyboardButton("Grain", callback_data='Grain'), InlineKeyboardButton("Happy", callback_data='Happy'), InlineKeyboardButton("Blue Film", callback_data='Blue Film')],
+        [InlineKeyboardButton("Iron", callback_data='Iron'), InlineKeyboardButton("The Darkest Hour", callback_data='The Darkest Hour'), InlineKeyboardButton("iPhone 14 Pro", callback_data='iPhone 14 Pro')],
+        [InlineKeyboardButton("Top Gun Maverick", callback_data='Top Gun Maverick'), InlineKeyboardButton("Black Tone", callback_data='Black Tone'), InlineKeyboardButton("Retro Fashion", callback_data='Retro Fashion')],
+        [InlineKeyboardButton("Cinematic", callback_data='Cinematic'), InlineKeyboardButton("filmlook", callback_data='filmlook'), InlineKeyboardButton("CINEMA", callback_data='CINEMA')],
+        [InlineKeyboardButton("Ahmed Ali", callback_data='Ahmed Ali'), InlineKeyboardButton("Orange teal", callback_data='Orange teal'), InlineKeyboardButton("Anime", callback_data='Anime')],
+        [InlineKeyboardButton("Estetic", callback_data='Estetic'), InlineKeyboardButton("ProPortrait", callback_data='ProPortrait'), InlineKeyboardButton("iPhone 15 pro", callback_data='iPhone 15 pro')],
+        [InlineKeyboardButton("Vivi", callback_data='Vivi'), InlineKeyboardButton("CineStyle", callback_data='CineStyle'), InlineKeyboardButton("Sam Kolder", callback_data='Sam Kolder')],
+        [InlineKeyboardButton("Bright Sky", callback_data='Bright Sky'), InlineKeyboardButton("Dark 2024", callback_data='Dark 2024'), InlineKeyboardButton("Cinematic Night", callback_data='Cinematic Night')],
+        [InlineKeyboardButton("Deep Fall", callback_data='Deep Fall'), InlineKeyboardButton("Blue Lake", callback_data='Blue Lake'), InlineKeyboardButton("Smooth Face", callback_data='Smooth Face')]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     update.message.reply_text('اختر أحد الفلاتر الآتية:', reply_markup=reply_markup)
@@ -161,7 +159,11 @@ def button(update: Update, context: CallbackContext) -> None:
     filtered_image.save(bio, 'PNG')
     bio.seek(0)
 
-    query.message.reply_photo(photo=bio, caption=f"Filter name: {filter_name}\nتمت إضافة التأثير بنجاح.")
+    keyboard = [
+        [InlineKeyboardButton("تابعني على تلغرام", url="https://t.me/elkhabur")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    query.message.reply_photo(photo=bio, caption=f"Filter name: {filter_name}\nتمت إضافة التأثير بنجاح.", reply_markup=reply_markup)
 
 def main() -> None:
     updater = Updater(API_KEY)
@@ -171,9 +173,8 @@ def main() -> None:
     dispatcher.add_handler(CommandHandler("start", start))
     dispatcher.add_handler(MessageHandler(Filters.photo, handle_image))
     dispatcher.add_handler(CallbackQueryHandler(button))
-
     updater.start_polling()
     updater.idle()
 
-if __name__ == '__main__':
+if name == 'main':
     main()

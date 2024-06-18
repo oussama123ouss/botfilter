@@ -1,5 +1,3 @@
 python-telegram-bot==13.7
 Pillow==8.3.1
 numpy==1.21.1
-opencv-python==4.5.3.56
-colour-science==0.3.16

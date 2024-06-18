@@ -2,10 +2,11 @@ import os
 import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackQueryHandler, CallbackContext
-from PIL import Image, ImageEnhance, ImageFilter
-import io
-import cv2
+from PIL import Image
 import numpy as np
+import cv2
+import colour
+import io
 
 # API Key
 API_KEY = '6987466658:AAEWjl7aoa_LSqQSx0s4REM5gyT6vUz_6sc'
@@ -29,69 +30,51 @@ def start(update: Update, context: CallbackContext) -> None:
         reply_markup=reply_markup
     )
 
-def load_lut(file_path):
-    try:
-        with open(file_path, 'r') as f:
-            lines = f.readlines()
-    except Exception as e:
-        logger.error(f"Error loading LUT file {file_path}: {e}")
-        return None
-
+def load_cube(file_path):
+    """Load .cube LUT file."""
+    with open(file_path) as f:
+        lines = f.readlines()
+    
+    lut_size = None
     lut = []
+    
     for line in lines:
-        if line.startswith('#') or line.strip() == '':
+        if line.startswith('#') or line.startswith('TITLE') or line.startswith('LUT_3D_SIZE'):
             continue
-        values = list(map(float, line.split()))
-        lut.append(values)
+        elif line.startswith('LUT_3D_SIZE'):
+            lut_size = int(line.split()[1])
+        else:
+            lut.append([float(x) for x in line.strip().split()])
+    
+    return np.array(lut).reshape(lut_size, lut_size, lut_size, 3)
 
-    lut = np.array(lut)
-    lut = lut.reshape((int(np.cbrt(len(lut))), int(np.cbrt(len(lut))), int(np.cbrt(len(lut))), 3))
-    return lut
-
-def apply_lut(image, lut):
-    try:
-        image_array = np.array(image)
-        h, w, _ = image_array.shape
-        lut = cv2.resize(lut, (w, h), interpolation=cv2.INTER_LINEAR)
-        result = cv2.LUT(image_array, lut)
-        return Image.fromarray(result)
-    except Exception as e:
-        logger.error(f"Error applying LUT: {e}")
-        return image
-
-# Load LUT filters
-try:
-    moody_yellow_lut = load_lut('/mnt/data/Moody Yellow LUT.cube_10.C1545.cube')
-    colour_pop_lut = load_lut('/mnt/data/colour_pop.cube')
-    cinematic_lut = load_lut('/mnt/data/Cinematic_for_Flog.cube')
-except Exception as e:
-    logger.error(f"Error loading LUTs: {e}")
-
-def apply_filter(image: Image.Image, filter_name: str) -> Image.Image:
-    if filter_name == 'Moody Yellow':
-        return apply_lut(image, moody_yellow_lut)
-    elif filter_name == 'Colour Pop':
-        return apply_lut(image, colour_pop_lut)
-    elif filter_name == 'Cinematic':
-        return apply_lut(image, cinematic_lut)
-    else:
-        return image
+def apply_lut(image: Image.Image, lut: np.ndarray) -> Image.Image:
+    """Apply LUT to image."""
+    img = np.array(image)
+    img = img / 255.0  # Normalize the image to 0-1
+    
+    lut_size = lut.shape[0]
+    result = np.empty_like(img)
+    
+    for i in range(3):
+        channel = img[..., i]
+        result[..., i] = np.interp(channel, np.linspace(0, 1, lut_size), lut[..., i].ravel())
+    
+    result = (result * 255).astype(np.uint8)
+    return Image.fromarray(result)
 
 def send_filters_keyboard(update: Update, context: CallbackContext) -> None:
     keyboard = [
-        [InlineKeyboardButton("Moody Yellow", callback_data='Moody Yellow'), InlineKeyboardButton("Colour Pop", callback_data='Colour Pop')],
-        [InlineKeyboardButton("Cinematic", callback_data='Cinematic')]
+        [InlineKeyboardButton("Filter 1", callback_data='filter1.cube')],
+        [InlineKeyboardButton("Filter 2", callback_data='filter2.cube')],
+        [InlineKeyboardButton("Filter 3", callback_data='filter3.cube')]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     update.message.reply_text('اختر أحد الفلاتر الآتية:', reply_markup=reply_markup)
 
 def handle_image(update: Update, context: CallbackContext) -> None:
-    try:
-        context.user_data['image'] = update.message.photo[-1].get_file().download_as_bytearray()
-        send_filters_keyboard(update, context)
-    except Exception as e:
-        logger.error(f"Error handling image: {e}")
-        update.message.reply_text("حدث خطأ أثناء معالجة الصورة. يرجى المحاولة مرة أخرى.")
+    context.user_data['image'] = update.message.photo[-1].get_file().download_as_bytearray()
+    send_filters_keyboard(update, context)
 
 def button(update: Update, context: CallbackContext) -> None:
     query = update.callback_query
@@ -101,7 +84,10 @@ def button(update: Update, context: CallbackContext) -> None:
     image_data = context.user_data['image']
     image = Image.open(io.BytesIO(image_data))
 
-    filtered_image = apply_filter(image, filter_name)
+    lut_path = os.path.join('path_to_filters_directory', filter_name)
+    lut = load_cube(lut_path)
+    
+    filtered_image = apply_lut(image, lut)
 
     bio = io.BytesIO()
     bio.name = 'image.png'

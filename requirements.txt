@@ -1,9 +1,5 @@
-python-telegram-bot==13.5
-Pillow==8.2.0
-numpy==1.20.3
-opencv-python-headless==4.5.2.52
-setuptools==58.0.0
-six==1.15.0
-pip install --upgrade pip setuptools
-pip freeze > requirements.txt
-pipenv install -r requirements.txt
+python-telegram-bot==13.7
+Pillow==8.3.1
+numpy==1.21.1
+opencv-python==4.5.3.56
+colour-science==0.3.16

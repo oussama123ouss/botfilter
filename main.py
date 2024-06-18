@@ -2,8 +2,7 @@ import os
 import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackQueryHandler, CallbackContext
-from PIL import Image
-import numpy as np
+from PIL import Image, ImageEnhance, ImageFilter
 import io
 
 # API Key
@@ -28,44 +27,73 @@ def start(update: Update, context: CallbackContext) -> None:
         reply_markup=reply_markup
     )
 
-def load_cube(file_path):
-    """Load .cube LUT file."""
-    with open(file_path, 'r') as f:
-        lines = f.readlines()
-    
-    lut_size = None
-    lut = []
-    
-    for line in lines:
-        if line.startswith('#') or line.startswith('TITLE') or line.startswith('LUT_3D_SIZE'):
-            continue
-        elif line.startswith('LUT_3D_SIZE'):
-            lut_size = int(line.split()[1])
-        else:
-            lut.append([float(x) for x in line.strip().split()])
-    
-    return np.array(lut).reshape(lut_size, lut_size, lut_size, 3)
-
-def apply_lut(image: Image.Image, lut: np.ndarray) -> Image.Image:
-    """Apply LUT to image."""
-    img = np.array(image)
-    img = img / 255.0  # Normalize the image to 0-1
-    
-    lut_size = lut.shape[0]
-    result = np.empty_like(img)
-    
-    for i in range(3):
-        channel = img[..., i]
-        result[..., i] = np.interp(channel, np.linspace(0, 1, lut_size), lut[..., i].ravel())
-    
-    result = (result * 255).astype(np.uint8)
-    return Image.fromarray(result)
+def apply_filter(image: Image.Image, filter_name: str) -> Image.Image:
+    if filter_name == 'Soft Contrast':
+        enhancer = ImageEnhance.Contrast(image)
+        return enhancer.enhance(1.2)
+    elif filter_name == 'Warm Glow':
+        enhancer = ImageEnhance.Color(image)
+        return enhancer.enhance(1.3)
+    elif filter_name == 'Vintage':
+        enhancer = ImageEnhance.Color(image)
+        image = enhancer.enhance(0.7)
+        return image.filter(ImageFilter.GaussianBlur(1))
+    elif filter_name == 'Cool Tone':
+        r, g, b = image.split()
+        b = b.point(lambda i: i * 1.2)
+        return Image.merge('RGB', (r, g, b))
+    elif filter_name == 'Brighten':
+        enhancer = ImageEnhance.Brightness(image)
+        return enhancer.enhance(1.5)
+    elif filter_name == 'Sharpen':
+        return image.filter(ImageFilter.SHARPEN)
+    elif filter_name == 'Smooth':
+        return image.filter(ImageFilter.SMOOTH_MORE)
+    elif filter_name == 'Sepia':
+        sepia = [(r//2 + 100, g//2 + 50, b//2) for (r, g, b) in image.getdata()]
+        image.putdata(sepia)
+        return image
+    elif filter_name == 'B&W':
+        return image.convert('L')
+    elif filter_name == 'High Contrast':
+        enhancer = ImageEnhance.Contrast(image)
+        return enhancer.enhance(2.0)
+    elif filter_name == 'Soft Blur':
+        return image.filter(ImageFilter.BLUR)
+    elif filter_name == 'Detail Enhance':
+        return image.filter(ImageFilter.DETAIL)
+    elif filter_name == 'Edge Enhance':
+        return image.filter(ImageFilter.EDGE_ENHANCE)
+    elif filter_name == 'Emboss':
+        return image.filter(ImageFilter.EMBOSS)
+    elif filter_name == 'Contour':
+        return image.filter(ImageFilter.CONTOUR)
+    elif filter_name == 'Glow':
+        enhancer = ImageEnhance.Brightness(image)
+        image = enhancer.enhance(1.2)
+        enhancer = ImageEnhance.Color(image)
+        return enhancer.enhance(1.1)
+    elif filter_name == 'Desaturate':
+        enhancer = ImageEnhance.Color(image)
+        return enhancer.enhance(0.5)
+    elif filter_name == 'Posterize':
+        return image.convert("P", palette=Image.ADAPTIVE, colors=8)
+    elif filter_name == 'Solarize':
+        return image.point(lambda p: p if p < 128 else 255 - p)
+    elif filter_name == 'Invert':
+        return ImageOps.invert(image)
+    else:
+        return image
 
 def send_filters_keyboard(update: Update, context: CallbackContext) -> None:
     keyboard = [
-        [InlineKeyboardButton("Filter 1", callback_data='filter1.CUBE')],
-        [InlineKeyboardButton("Filter 2", callback_data='filter2.CUBE')],
-        [InlineKeyboardButton("Filter 3", callback_data='filter3.CUBE')]
+        [InlineKeyboardButton("Soft Contrast", callback_data='Soft Contrast'), InlineKeyboardButton("Warm Glow", callback_data='Warm Glow'), InlineKeyboardButton("Vintage", callback_data='Vintage')],
+        [InlineKeyboardButton("Cool Tone", callback_data='Cool Tone'), InlineKeyboardButton("Brighten", callback_data='Brighten'), InlineKeyboardButton("Sharpen", callback_data='Sharpen')],
+        [InlineKeyboardButton("Smooth", callback_data='Smooth'), InlineKeyboardButton("Sepia", callback_data='Sepia'), InlineKeyboardButton("B&W", callback_data='B&W')],
+        [InlineKeyboardButton("High Contrast", callback_data='High Contrast'), InlineKeyboardButton("Soft Blur", callback_data='Soft Blur'), InlineKeyboardButton("Detail Enhance", callback_data='Detail Enhance')],
+        [InlineKeyboardButton("Edge Enhance", callback_data='Edge Enhance'), InlineKeyboardButton("Emboss", callback_data='Emboss'), InlineKeyboardButton("Contour", callback_data='Contour')],
+        [InlineKeyboardButton("Glow", callback_data='Glow'), InlineKeyboardButton("Desaturate", callback_data='Desaturate'), InlineKeyboardButton("Posterize", callback_data='Posterize')],
+        [InlineKeyboardButton("Solarize", callback_data='Solarize'), InlineKeyboardButton("Invert", callback_data='Invert')]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     update.message.reply_text('اختر أحد الفلاتر الآتية:', reply_markup=reply_markup)
@@ -82,11 +110,7 @@ def button(update: Update, context: CallbackContext) -> None:
     image_data = context.user_data['image']
     image = Image.open(io.BytesIO(image_data))
 
-    # Adjust this path to the actual location of your .CUBE files
-    lut_path = f'path/to/{filter_name}'
-    lut = load_cube(lut_path)
-    
-    filtered_image = apply_lut(image, lut)
+    filtered_image = apply_filter(image, filter_name)
 
     bio = io.BytesIO()
     bio.name = 'image.png'

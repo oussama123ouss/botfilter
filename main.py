@@ -4,8 +4,6 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackQueryHandler, CallbackContext
 from PIL import Image
 import numpy as np
-import cv2
-import colour
 import io
 
 # API Key
@@ -84,7 +82,7 @@ def button(update: Update, context: CallbackContext) -> None:
     image_data = context.user_data['image']
     image = Image.open(io.BytesIO(image_data))
 
-    lut_path = os.path.join('path_to_filters_directory', filter_name)
+    lut_path = os.path.join('filters', filter_name)
     lut = load_cube(lut_path)
     
     filtered_image = apply_lut(image, lut)

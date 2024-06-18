@@ -6,3 +6,4 @@ setuptools==58.0.0
 six==1.15.0
 pip install --upgrade pip setuptools
 pip freeze > requirements.txt
+pipenv install -r requirements.txt

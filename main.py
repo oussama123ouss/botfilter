@@ -63,9 +63,9 @@ def apply_lut(image: Image.Image, lut: np.ndarray) -> Image.Image:
 
 def send_filters_keyboard(update: Update, context: CallbackContext) -> None:
     keyboard = [
-        [InlineKeyboardButton("Filter 1", callback_data='filter1.cube')],
-        [InlineKeyboardButton("Filter 2", callback_data='filter2.cube')],
-        [InlineKeyboardButton("Filter 3", callback_data='filter3.cube')]
+        [InlineKeyboardButton("Filter 1", callback_data='filter1.CUBE')],
+        [InlineKeyboardButton("Filter 2", callback_data='filter2.CUBE')],
+        [InlineKeyboardButton("Filter 3", callback_data='filter3.CUBE')]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     update.message.reply_text('اختر أحد الفلاتر الآتية:', reply_markup=reply_markup)
@@ -82,7 +82,7 @@ def button(update: Update, context: CallbackContext) -> None:
     image_data = context.user_data['image']
     image = Image.open(io.BytesIO(image_data))
 
-    lut_path = os.path.join('filters', filter_name)
+    lut_path = os.path.join(filter_name)
     lut = load_cube(lut_path)
     
     filtered_image = apply_lut(image, lut)

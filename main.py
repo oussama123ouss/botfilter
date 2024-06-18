@@ -30,7 +30,7 @@ def start(update: Update, context: CallbackContext) -> None:
 
 def load_cube(file_path):
     """Load .cube LUT file."""
-    with open(file_path) as f:
+    with open(file_path, 'r') as f:
         lines = f.readlines()
     
     lut_size = None
@@ -82,7 +82,8 @@ def button(update: Update, context: CallbackContext) -> None:
     image_data = context.user_data['image']
     image = Image.open(io.BytesIO(image_data))
 
-    lut_path = os.path.join(filter_name)
+    # Adjust this path to the actual location of your .CUBE files
+    lut_path = f'path/to/{filter_name}'
     lut = load_cube(lut_path)
     
     filtered_image = apply_lut(image, lut)

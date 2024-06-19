@@ -36,7 +36,7 @@ def start(update: Update, context: CallbackContext) -> None:
         reply_markup = InlineKeyboardMarkup(keyboard)
         update.message.reply_text(
             "مرحبا عزيزي 🎉\n\n"
-            "أرسل الفيديو 🎥 المراد تطبيق فلاتر عليه 🔮\n\n"
+            "أرسل الفيديو 🎥 المراد تطبيق الفلاتر عليه 🔮\n\n"
             "جميع الصيغ مدعومة ⚡️",
             reply_markup=reply_markup
         )
@@ -53,51 +53,19 @@ def start(update: Update, context: CallbackContext) -> None:
         )
 
 def apply_filter(video_clip, filter_name: str):
-    if filter_name == 'Cinematic':
-        return video_clip.fx(vfx.colorx, 1.4).fx(vfx.lum_contrast, lum=20, contrast=50)
-    elif filter_name == 'Soft Glow':
-        return video_clip.fx(vfx.colorx, 1.1).fx(vfx.lum_contrast, contrast=15).fx(vfx.gaussian_blur, sigma=1.5)
-    elif filter_name == 'Vintage':
-        return video_clip.fx(vfx.colorx, 0.7).fx(vfx.lum_contrast, contrast=20).fx(vfx.blackwhite)
-    elif filter_name == 'Cool Tone':
-        return video_clip.fx(vfx.colorx, 0.9).fx(vfx.lum_contrast, contrast=20)
-    elif filter_name == 'Brighten':
-        return video_clip.fx(vfx.colorx, 1.5)
-    elif filter_name == 'Sepia':
-        def sepia_filter(get_frame, t):
-            frame = get_frame(t)
-            r, g, b = frame[:, :, 0], frame[:, :, 1], frame[:, :, 2]
-            tr = 0.393 * r + 0.769 * g + 0.189 * b
-            tg = 0.349 * r + 0.686 * g + 0.168 * b
-            tb = 0.272 * r + 0.534 * g + 0.131 * b
-            sepia = np.stack([tr, tg, tb], axis=2)
-            return np.clip(sepia, 0, 255).astype(np.uint8)
-        return video_clip.fl(sepia_filter)
-    elif filter_name == 'B&W':
-        return video_clip.fx(vfx.blackwhite)
-    elif filter_name == 'High Contrast':
-        return video_clip.fx(vfx.lum_contrast, contrast=70)
+    if filter_name == 'Color Enhancement':
+        return video_clip.fx(vfx.colorx, 1.2).fx(vfx.lum_contrast, contrast=30)
     elif filter_name == 'Soft Blur':
-        return video_clip.fx(vfx.gaussian_blur, sigma=2)
-    elif filter_name == 'Desaturate':
-        return video_clip.fx(vfx.colorx, 0.3)
-    elif filter_name == 'Color Enhancement':  # New filter added
-        return color_enhancement_filter(video_clip)
+        return video_clip.fx(vfx.gaussian_blur, sigma=1.5)
     else:
         return video_clip
 
-def color_enhancement_filter(video_clip):
-    return video_clip.fx(vfx.colorx, 1.2).fx(vfx.lum_contrast, contrast=30)
-
 def send_filters_keyboard(update: Update, context: CallbackContext) -> None:
     keyboard = [
-        [InlineKeyboardButton("Cinematic", callback_data='Cinematic'), InlineKeyboardButton("Soft Glow", callback_data='Soft Glow'), InlineKeyboardButton("Vintage", callback_data='Vintage')],
-        [InlineKeyboardButton("Cool Tone", callback_data='Cool Tone'), InlineKeyboardButton("Brighten", callback_data='Brighten'), InlineKeyboardButton("Sepia", callback_data='Sepia')],
-        [InlineKeyboardButton("B&W", callback_data='B&W'), InlineKeyboardButton("High Contrast", callback_data='High Contrast'), InlineKeyboardButton("Soft Blur", callback_data='Soft Blur')],
-        [InlineKeyboardButton("Desaturate", callback_data='Desaturate'), InlineKeyboardButton("Color Enhancement", callback_data='Color Enhancement')]  # New filter added
+        [InlineKeyboardButton("تعزيز الألوان", callback_data='Color Enhancement'), InlineKeyboardButton("تنعيم ناعم", callback_data='Soft Blur')]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    update.message.reply_text('اختر أحد الفلاتر الآتية:', reply_markup=reply_markup)
+    update.message.reply_text('اختر أحد الفلاتر الآتية لتطبيقه على الفيديو:', reply_markup=reply_markup)
 
 def handle_video(update: Update, context: CallbackContext) -> None:
     user_id = update.message.from_user.id

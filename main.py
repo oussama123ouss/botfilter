@@ -4,10 +4,9 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackQueryHandler, CallbackContext
 from moviepy.editor import VideoFileClip, vfx
 import tempfile
-import numpy as np
 
 # API Key
-API_KEY = '6987466658:AAEWjl7aoa_LSqQSx0s4REM5gyT6vUz_6sc'
+API_KEY = 'YOUR_BOT_API_TOKEN'
 
 # Enable logging
 logging.basicConfig(
@@ -54,33 +53,25 @@ def start(update: Update, context: CallbackContext) -> None:
 
 def apply_filter(video_clip, filter_name: str):
     if filter_name == 'Cinematic':
-        return video_clip.fx(vfx.colorx, 1.4).fx(vfx.lum_contrast, lum=20, contrast=50)
+        return video_clip.fx(vfx.colorx, 1.2).fx(vfx.lum_contrast, lum=15, contrast=30)
     elif filter_name == 'Soft Glow':
-        return video_clip.fx(vfx.colorx, 1.1).fx(vfx.lum_contrast, contrast=15).fx(vfx.gaussian_blur, sigma=1.5)
+        return video_clip.fx(vfx.colorx, 1.1).fx(vfx.lum_contrast, contrast=15)
     elif filter_name == 'Vintage':
-        return video_clip.fx(vfx.colorx, 0.7).fx(vfx.lum_contrast, contrast=20).fx(vfx.blackwhite)
+        return video_clip.fx(vfx.blackwhite).fx(vfx.lum_contrast, contrast=30).fx(vfx.colorx, 0.8)
     elif filter_name == 'Cool Tone':
-        return video_clip.fx(vfx.colorx, 0.9).fx(vfx.lum_contrast, contrast=20)
+        return video_clip.fx(vfx.colorx, 0.9).fx(vfx.lum_contrast, contrast=10)
     elif filter_name == 'Brighten':
-        return video_clip.fx(vfx.colorx, 1.5)
+        return video_clip.fx(vfx.colorx, 1.3)
     elif filter_name == 'Sepia':
-        def sepia_filter(get_frame, t):
-            frame = get_frame(t)
-            r, g, b = frame[:, :, 0], frame[:, :, 1], frame[:, :, 2]
-            tr = 0.393 * r + 0.769 * g + 0.189 * b
-            tg = 0.349 * r + 0.686 * g + 0.168 * b
-            tb = 0.272 * r + 0.534 * g + 0.131 * b
-            sepia = np.stack([tr, tg, tb], axis=2)
-            return np.clip(sepia, 0, 255).astype(np.uint8)
-        return video_clip.fl(sepia_filter)
+        return video_clip.fx(vfx.colorx, 0.8).fx(vfx.lum_contrast, contrast=20)
     elif filter_name == 'B&W':
         return video_clip.fx(vfx.blackwhite)
     elif filter_name == 'High Contrast':
-        return video_clip.fx(vfx.lum_contrast, contrast=70)
+        return video_clip.fx(vfx.lum_contrast, contrast=50)
     elif filter_name == 'Soft Blur':
         return video_clip.fx(vfx.gaussian_blur, sigma=2)
     elif filter_name == 'Desaturate':
-        return video_clip.fx(vfx.colorx, 0.3)
+        return video_clip.fx(vfx.colorx, 0.5)
     else:
         return video_clip
 

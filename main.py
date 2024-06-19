@@ -3,7 +3,7 @@ import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackQueryHandler, CallbackContext
 from moviepy.editor import VideoFileClip, vfx
-import io
+import tempfile
 
 # API Key
 API_KEY = '6987466658:AAEWjl7aoa_LSqQSx0s4REM5gyT6vUz_6sc'
@@ -110,20 +110,30 @@ def button(update: Update, context: CallbackContext) -> None:
 
     filter_name = query.data
     video_data = context.user_data['video']
-    video_clip = VideoFileClip(io.BytesIO(video_data))
+
+    # Write the video data to a temporary file
+    with tempfile.NamedTemporaryFile(delete=False, suffix='.mp4') as tmp_video:
+        tmp_video.write(video_data)
+        tmp_video_path = tmp_video.name
+
+    video_clip = VideoFileClip(tmp_video_path)
 
     filtered_video = apply_filter(video_clip, filter_name)
 
-    bio = io.BytesIO()
-    bio.name = 'filtered_video.mp4'
-    filtered_video.write_videofile(bio.name, codec='libx264')
-    bio.seek(0)
+    with tempfile.NamedTemporaryFile(delete=False, suffix='.mp4') as tmp_output:
+        filtered_video.write_videofile(tmp_output.name, codec='libx264')
+        tmp_output_path = tmp_output.name
 
-    keyboard = [
-        [InlineKeyboardButton("تابعني على تلغرام", url="https://t.me/elkhabur")]
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    query.message.reply_video(video=bio, caption=f"Filter name: {filter_name}\nتمت إضافة التأثير بنجاح.", reply_markup=reply_markup)
+    with open(tmp_output_path, 'rb') as video_file:
+        keyboard = [
+            [InlineKeyboardButton("تابعني على تلغرام", url="https://t.me/elkhabur")]
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        query.message.reply_video(video=video_file, caption=f"Filter name: {filter_name}\nتمت إضافة التأثير بنجاح.", reply_markup=reply_markup)
+
+    # Clean up the temporary files
+    os.remove(tmp_video_path)
+    os.remove(tmp_output_path)
 
 def main() -> None:
     updater = Updater(API_KEY)

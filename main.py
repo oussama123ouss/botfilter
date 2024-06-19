@@ -81,15 +81,20 @@ def apply_filter(video_clip, filter_name: str):
         return video_clip.fx(vfx.gaussian_blur, sigma=2)
     elif filter_name == 'Desaturate':
         return video_clip.fx(vfx.colorx, 0.3)
+    elif filter_name == 'Color Enhancement':  # New filter added
+        return color_enhancement_filter(video_clip)
     else:
         return video_clip
+
+def color_enhancement_filter(video_clip):
+    return video_clip.fx(vfx.colorx, 1.2).fx(vfx.lum_contrast, contrast=30)
 
 def send_filters_keyboard(update: Update, context: CallbackContext) -> None:
     keyboard = [
         [InlineKeyboardButton("Cinematic", callback_data='Cinematic'), InlineKeyboardButton("Soft Glow", callback_data='Soft Glow'), InlineKeyboardButton("Vintage", callback_data='Vintage')],
         [InlineKeyboardButton("Cool Tone", callback_data='Cool Tone'), InlineKeyboardButton("Brighten", callback_data='Brighten'), InlineKeyboardButton("Sepia", callback_data='Sepia')],
         [InlineKeyboardButton("B&W", callback_data='B&W'), InlineKeyboardButton("High Contrast", callback_data='High Contrast'), InlineKeyboardButton("Soft Blur", callback_data='Soft Blur')],
-        [InlineKeyboardButton("Desaturate", callback_data='Desaturate')]
+        [InlineKeyboardButton("Desaturate", callback_data='Desaturate'), InlineKeyboardButton("Color Enhancement", callback_data='Color Enhancement')]  # New filter added
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     update.message.reply_text('اختر أحد الفلاتر الآتية:', reply_markup=reply_markup)

@@ -53,16 +53,65 @@ def start(update: Update, context: CallbackContext) -> None:
         )
 
 def apply_filter(video_clip, filter_name: str):
-    if filter_name == 'Color Enhancement':
-        return video_clip.fx(vfx.colorx, 1.2).fx(vfx.lum_contrast, contrast=30)
-    elif filter_name == 'Soft Blur':
-        return video_clip.fx(vfx.gaussian_blur, sigma=1.5)
+    if filter_name == 'Brightening':
+        return video_clip.fx(vfx.colorx, 1.2)
+    elif filter_name == 'Contrast Boost':
+        return video_clip.fx(vfx.lum_contrast, contrast=40)
+    elif filter_name == 'Warm Filter':
+        def warm_filter(get_frame, t):
+            frame = get_frame(t)
+            frame[:, :, 0] = np.clip(frame[:, :, 0] * 1.1, 0, 255)  # Increase red channel
+            frame[:, :, 2] = np.clip(frame[:, :, 2] * 0.9, 0, 255)  # Decrease blue channel
+            return frame
+        return video_clip.fl(warm_filter)
+    elif filter_name == 'Cool Filter':
+        def cool_filter(get_frame, t):
+            frame = get_frame(t)
+            frame[:, :, 0] = np.clip(frame[:, :, 0] * 0.9, 0, 255)  # Decrease red channel
+            frame[:, :, 2] = np.clip(frame[:, :, 2] * 1.1, 0, 255)  # Increase blue channel
+            return frame
+        return video_clip.fl(cool_filter)
+    elif filter_name == 'Saturation Boost':
+        return video_clip.fx(vfx.colorx, 1.5)
+    elif filter_name == 'Vintage':
+        return video_clip.fx(vfx.colorx, 0.7).fx(vfx.lum_contrast, contrast=20).fx(vfx.blackwhite)
+    elif filter_name == 'Black and White':
+        return video_clip.fx(vfx.blackwhite)
+    elif filter_name == 'Sepia':
+        def sepia_filter(get_frame, t):
+            frame = get_frame(t)
+            r, g, b = frame[:, :, 0], frame[:, :, 1], frame[:, :, 2]
+            tr = 0.393 * r + 0.769 * g + 0.189 * b
+            tg = 0.349 * r + 0.686 * g + 0.168 * b
+            tb = 0.272 * r + 0.534 * g + 0.131 * b
+            sepia = np.stack([tr, tg, tb], axis=2)
+            return np.clip(sepia, 0, 255).astype(np.uint8)
+        return video_clip.fl(sepia_filter)
+    elif filter_name == 'Vignette':
+        def vignette_filter(get_frame, t):
+            frame = get_frame(t)
+            rows, cols, _ = frame.shape
+            X_resultant_kernel = cv2.getGaussianKernel(cols,200)
+            Y_resultant_kernel = cv2.getGaussianKernel(rows,200)
+            kernel = Y_resultant_kernel * X_resultant_kernel.T
+            mask = 255 * kernel / np.linalg.norm(kernel)
+            output = np.copy(frame)
+            for i in range(3):
+                output[:,:,i] = output[:,:,i] * mask
+            return output
+        return video_clip.fl(vignette_filter)
+    elif filter_name == 'Blur':
+        return video_clip.fx(vfx.gaussian_blur, sigma=2)
     else:
         return video_clip
 
 def send_filters_keyboard(update: Update, context: CallbackContext) -> None:
     keyboard = [
-        [InlineKeyboardButton("تعزيز الألوان", callback_data='Color Enhancement'), InlineKeyboardButton("تنعيم ناعم", callback_data='Soft Blur')]
+        [InlineKeyboardButton("Brightening", callback_data='Brightening'), InlineKeyboardButton("Contrast Boost", callback_data='Contrast Boost')],
+        [InlineKeyboardButton("Warm Filter", callback_data='Warm Filter'), InlineKeyboardButton("Cool Filter", callback_data='Cool Filter')],
+        [InlineKeyboardButton("Saturation Boost", callback_data='Saturation Boost'), InlineKeyboardButton("Vintage", callback_data='Vintage')],
+        [InlineKeyboardButton("Black and White", callback_data='Black and White'), InlineKeyboardButton("Sepia", callback_data='Sepia')],
+        [InlineKeyboardButton("Vignette", callback_data='Vignette'), InlineKeyboardButton("Blur", callback_data='Blur')]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     update.message.reply_text('اختر أحد الفلاتر الآتية لتطبيقه على الفيديو:', reply_markup=reply_markup)
@@ -123,11 +172,4 @@ def main() -> None:
     dispatcher = updater.dispatcher
 
     dispatcher.add_handler(CommandHandler("start", start))
-    dispatcher.add_handler(MessageHandler(Filters.video, handle_video))
-    dispatcher.add_handler(CallbackQueryHandler(button))
-
-    updater.start_polling()
-    updater.idle()
-
-if __name__ == '__main__':
-    main()
+    dispatcher.add_handler(Message

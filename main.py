@@ -142,29 +142,35 @@ def button(update: Update, context: CallbackContext) -> None:
     filter_name = query.data
     video_data = context.user_data['video']
 
-    # Write the video data to a temporary file
-    with tempfile.NamedTemporaryFile(delete=False, suffix='.mp4') as tmp_video:
-        tmp_video.write(video_data)
-        tmp_video_path = tmp_video.name
+    try:
+        # Write the video data to a temporary file
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.mp4') as tmp_video:
+            tmp_video.write(video_data)
+            tmp_video_path = tmp_video.name
 
-    video_clip = VideoFileClip(tmp_video_path)
+        video_clip = VideoFileClip(tmp_video_path)
 
-    filtered_video = apply_filter(video_clip, filter_name)
+        filtered_video = apply_filter(video_clip, filter_name)
 
-    with tempfile.NamedTemporaryFile(delete=False, suffix='.mp4') as tmp_output:
-        filtered_video.write_videofile(tmp_output.name, codec='libx264')
-        tmp_output_path = tmp_output.name
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.mp4') as tmp_output:
+            filtered_video.write_videofile(tmp_output.name, codec='libx264')
+            tmp_output_path = tmp_output.name
 
-    with open(tmp_output_path, 'rb') as video_file:
-        keyboard = [
-            [InlineKeyboardButton("تابعني على تلغرام", url="https://t.me/elkhabur")]
-        ]
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        query.message.reply_video(video=video_file, caption=f"Filter name: {filter_name}\nتمت إضافة التأثير بنجاح.", reply_markup=reply_markup)
-
-    # Clean up the temporary files
-    os.remove(tmp_video_path)
-    os.remove(tmp_output_path)
+        with open(tmp_output_path, 'rb') as video_file:
+            keyboard = [
+                [InlineKeyboardButton("تابعني على تلغرام", url="https://t.me/elkhabur")]
+            ]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            query.message.reply_video(video=video_file, caption=f"Filter name: {filter_name}\nتمت إضافة التأثير بنجاح.", reply_markup=reply_markup)
+    except Exception as e:
+        logger.error(f"Error applying filter: {e}")
+        query.message.reply_text("حدث خطأ أثناء تطبيق الفلتر. يرجى المحاولة مرة أخرى.")
+    finally:
+        # Clean up the temporary files
+        if os.path.exists(tmp_video_path):
+            os.remove(tmp_video_path)
+        if os.path.exists(tmp_output_path):
+            os.remove(tmp_output_path)
 
 def main() -> None:
     updater = Updater(API_KEY)
@@ -172,4 +178,11 @@ def main() -> None:
     dispatcher = updater.dispatcher
 
     dispatcher.add_handler(CommandHandler("start", start))
-    dispatcher.add_handler(Message
+    dispatcher.add_handler(MessageHandler(Filters.video, handle_video))
+    dispatcher.add_handler(CallbackQueryHandler(button))
+
+    updater.start_polling()
+    updater.idle()
+
+if __name__ == '__main__':
+    main()

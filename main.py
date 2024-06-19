@@ -5,6 +5,7 @@ from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, Callb
 from moviepy.editor import VideoFileClip, vfx
 import tempfile
 import numpy as np
+import cv2
 
 # API Key
 API_KEY = '6987466658:AAEWjl7aoa_LSqQSx0s4REM5gyT6vUz_6sc'
@@ -101,7 +102,7 @@ def apply_filter(video_clip, filter_name: str):
             return output
         return video_clip.fl(vignette_filter)
     elif filter_name == 'Blur':
-        return video_clip.fx(vfx.gaussian_blur, sigma=2)
+        return video_clip.fx(vfx.blur, size=2)
     else:
         return video_clip
 

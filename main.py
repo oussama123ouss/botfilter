@@ -6,7 +6,7 @@ from moviepy.editor import VideoFileClip, vfx
 import tempfile
 
 # API Key
-API_KEY = 'YOUR_BOT_API_TOKEN'
+API_KEY = '6987466658:AAEWjl7aoa_LSqQSx0s4REM5gyT6vUz_6sc'
 
 # Enable logging
 logging.basicConfig(

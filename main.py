@@ -15,17 +15,36 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Channel details
+CHANNEL_ID = -1002013781137
+CHANNEL_USERNAME = 'elkhabur'
+
 def start(update: Update, context: CallbackContext) -> None:
-    keyboard = [
-        [InlineKeyboardButton("تابعني على تلغرام", url="https://t.me/elkhabur")]
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    update.message.reply_text(
-        "مرحبا عزيزي 🎉\n\n"
-        "أرسل الصورة 🖼️ المراد تطبيق فلاتر عليها 🔮\n\n"
-        "جميع الصيغ مدعومة ⚡️",
-        reply_markup=reply_markup
-    )
+    user_id = update.message.from_user.id
+    user_member = context.bot.get_chat_member(CHANNEL_ID, user_id)
+
+    if user_member.status in ['member', 'administrator', 'creator']:
+        keyboard = [
+            [InlineKeyboardButton("تابعني على تلغرام", url="https://t.me/elkhabur")]
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        update.message.reply_text(
+            "مرحبا عزيزي 🎉\n\n"
+            "أرسل الصورة 🖼️ المراد تطبيق فلاتر عليها 🔮\n\n"
+            "جميع الصيغ مدعومة ⚡️",
+            reply_markup=reply_markup
+        )
+    else:
+        keyboard = [
+            [InlineKeyboardButton("⚠️ متابعة ⚡️", url="https://t.me/elkhabur")]
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        update.message.reply_text(
+            "⚠️  عذراً عزيزي \n"
+            "⚙️  يجب عليك متابعة حسابي على تلغرام أولا\n"
+            "📮  تابع ثم ارسل /start ⬇️",
+            reply_markup=reply_markup
+        )
 
 def apply_filter(image: Image.Image, filter_name: str) -> Image.Image:
     if filter_name == 'Soft Contrast':

@@ -2,7 +2,7 @@ import os
 import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackQueryHandler, CallbackContext
-from PIL import Image, ImageEnhance, ImageFilter
+from PIL import Image, ImageEnhance, ImageFilter, ImageOps
 import io
 
 # API Key
@@ -16,39 +16,40 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Channel details
-CHANNEL_ID = -1002013781137
-CHANNEL_USERNAME = 'elkhabur'
+CHANNEL_USERNAME = '@elkhabur'
+
+def check_membership(user_id, context):
+    try:
+        user_member = context.bot.get_chat_member(CHANNEL_USERNAME, user_id)
+        return user_member.status in ['member', 'administrator', 'creator']
+    except Exception as e:
+        logger.error(f"Error checking membership: {e}")
+        return False
 
 def start(update: Update, context: CallbackContext) -> None:
-    try:
-        user_id = update.message.from_user.id
-        user_member = context.bot.get_chat_member(CHANNEL_ID, user_id)
-        
-        if user_member.status in ['member', 'administrator', 'creator']:
-            keyboard = [
-                [InlineKeyboardButton("تابعني على تلغرام", url="https://t.me/elkhabur")]
-            ]
-            reply_markup = InlineKeyboardMarkup(keyboard)
-            update.message.reply_text(
-                "مرحبا عزيزي 🎉\n\n"
-                "أرسل الصورة 🖼️ المراد تطبيق فلاتر عليها 🔮\n\n"
-                "جميع الصيغ مدعومة ⚡️",
-                reply_markup=reply_markup
-            )
-        else:
-            keyboard = [
-                [InlineKeyboardButton("⚠️ متابعة ⚡️", url="https://t.me/elkhabur")]
-            ]
-            reply_markup = InlineKeyboardMarkup(keyboard)
-            update.message.reply_text(
-                "⚠️  عذراً عزيزي \n"
-                "⚙️  يجب عليك متابعة حسابي على تلغرام أولا\n"
-                "📮  تابع ثم ارسل /start ⬇️",
-                reply_markup=reply_markup
-            )
-    except Exception as e:
-        logger.error(f"Error in start command: {e}")
-        update.message.reply_text("حدث خطأ. يرجى المحاولة لاحقًا.")
+    user_id = update.message.from_user.id
+    if check_membership(user_id, context):
+        keyboard = [
+            [InlineKeyboardButton("تابعني على تلغرام", url="https://t.me/elkhabur")]
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        update.message.reply_text(
+            "مرحبا عزيزي 🎉\n\n"
+            "أرسل الصورة 🖼️ المراد تطبيق فلاتر عليها 🔮\n\n"
+            "جميع الصيغ مدعومة ⚡️",
+            reply_markup=reply_markup
+        )
+    else:
+        keyboard = [
+            [InlineKeyboardButton("⚠️ متابعة ⚡️", url="https://t.me/elkhabur")]
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        update.message.reply_text(
+            "⚠️  عذراً عزيزي \n"
+            "⚙️  يجب عليك متابعة حسابي على تلغرام أولا\n"
+            "📮  تابع ثم ارسل /start ⬇️",
+            reply_markup=reply_markup
+        )
 
 def apply_filter(image: Image.Image, filter_name: str) -> Image.Image:
     if filter_name == 'Soft Contrast':
@@ -122,8 +123,21 @@ def send_filters_keyboard(update: Update, context: CallbackContext) -> None:
     update.message.reply_text('اختر أحد الفلاتر الآتية:', reply_markup=reply_markup)
 
 def handle_image(update: Update, context: CallbackContext) -> None:
-    context.user_data['image'] = update.message.photo[-1].get_file().download_as_bytearray()
-    send_filters_keyboard(update, context)
+    user_id = update.message.from_user.id
+    if check_membership(user_id, context):
+        context.user_data['image'] = update.message.photo[-1].get_file().download_as_bytearray()
+        send_filters_keyboard(update, context)
+    else:
+        keyboard = [
+            [InlineKeyboardButton("⚠️ متابعة ⚡️", url="https://t.me/elkhabur")]
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        update.message.reply_text(
+            "⚠️  عذراً عزيزي \n"
+            "⚙️  يجب عليك متابعة حسابي على تلغرام أولا\n"
+            "📮  تابع ثم ارسل /start ⬇️",
+            reply_markup=reply_markup
+        )
 
 def button(update: Update, context: CallbackContext) -> None:
     query = update.callback_query

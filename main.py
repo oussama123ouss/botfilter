@@ -51,36 +51,36 @@ def start(update: Update, context: CallbackContext) -> None:
             reply_markup=reply_markup
         )
 
-def apply_filter(video: VideoFileClip, filter_name: str) -> VideoFileClip:
+def apply_filter(video_clip, filter_name: str):
     if filter_name == 'Cinematic':
-        return video.fx(vfx.colorx, 1.5).fx(vfx.lum_contrast, 0, 30, 128)
-    elif filter_name == 'Soft':
-        return video.fx(vfx.colorx, 1.2)
-    elif filter_name == 'Black and White':
-        return video.fx(vfx.blackwhite)
-    elif filter_name == 'Edge Detection':
-        return video.fx(vfx.lum_contrast, 0, 30, 128).fx(vfx.colorx, 0.5)
+        return video_clip.fx(vfx.colorx, 1.2).fx(vfx.lum_contrast, lum=15, contrast=30)
+    elif filter_name == 'Soft Glow':
+        return video_clip.fx(vfx.colorx, 1.1).fx(vfx.lum_contrast, contrast=15)
     elif filter_name == 'Vintage':
-        return video.fx(vfx.lum_contrast, 0, 50, 128).fx(vfx.colorx, 0.7)
-    elif filter_name == 'Invert':
-        return video.fx(vfx.invert_colors)
-    elif filter_name == 'Brightness':
-        return video.fx(vfx.colorx, 1.3)
-    elif filter_name == 'Glow':
-        return video.fx(vfx.colorx, 1.1).fx(vfx.lum_contrast, 0, 40, 128)
-    elif filter_name == 'Posterize':
-        return video.fx(vfx.posterize, 8)
-    elif filter_name == 'Solarize':
-        return video.fx(vfx.lum_contrast, 0, 30, 128).fx(vfx.colorx, 0.5)
+        return video_clip.fx(vfx.blackwhite).fx(vfx.lum_contrast, contrast=30).fx(vfx.colorx, 0.8)
+    elif filter_name == 'Cool Tone':
+        return video_clip.fx(vfx.colorx, 0.9).fx(vfx.lum_contrast, contrast=10)
+    elif filter_name == 'Brighten':
+        return video_clip.fx(vfx.colorx, 1.3)
+    elif filter_name == 'Sepia':
+        return video_clip.fx(vfx.colorx, 0.8).fx(vfx.lum_contrast, contrast=20)
+    elif filter_name == 'B&W':
+        return video_clip.fx(vfx.blackwhite)
+    elif filter_name == 'High Contrast':
+        return video_clip.fx(vfx.lum_contrast, contrast=50)
+    elif filter_name == 'Soft Blur':
+        return video_clip.fx(vfx.gaussian_blur, sigma=2)
+    elif filter_name == 'Desaturate':
+        return video_clip.fx(vfx.colorx, 0.5)
     else:
-        return video
+        return video_clip
 
 def send_filters_keyboard(update: Update, context: CallbackContext) -> None:
     keyboard = [
-        [InlineKeyboardButton("Cinematic", callback_data='Cinematic'), InlineKeyboardButton("Soft", callback_data='Soft'), InlineKeyboardButton("Black and White", callback_data='Black and White')],
-        [InlineKeyboardButton("Edge Detection", callback_data='Edge Detection'), InlineKeyboardButton("Vintage", callback_data='Vintage'), InlineKeyboardButton("Invert", callback_data='Invert')],
-        [InlineKeyboardButton("Brightness", callback_data='Brightness'), InlineKeyboardButton("Glow", callback_data='Glow'), InlineKeyboardButton("Posterize", callback_data='Posterize')],
-        [InlineKeyboardButton("Solarize", callback_data='Solarize')]
+        [InlineKeyboardButton("Cinematic", callback_data='Cinematic'), InlineKeyboardButton("Soft Glow", callback_data='Soft Glow'), InlineKeyboardButton("Vintage", callback_data='Vintage')],
+        [InlineKeyboardButton("Cool Tone", callback_data='Cool Tone'), InlineKeyboardButton("Brighten", callback_data='Brighten'), InlineKeyboardButton("Sepia", callback_data='Sepia')],
+        [InlineKeyboardButton("B&W", callback_data='B&W'), InlineKeyboardButton("High Contrast", callback_data='High Contrast'), InlineKeyboardButton("Soft Blur", callback_data='Soft Blur')],
+        [InlineKeyboardButton("Desaturate", callback_data='Desaturate')]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     update.message.reply_text('اختر أحد الفلاتر الآتية:', reply_markup=reply_markup)
@@ -88,7 +88,9 @@ def send_filters_keyboard(update: Update, context: CallbackContext) -> None:
 def handle_video(update: Update, context: CallbackContext) -> None:
     user_id = update.message.from_user.id
     if check_membership(user_id, context):
-        context.user_data['video'] = update.message.video.get_file().download_as_bytearray()
+        video_file = update.message.video.get_file()
+        video_bytes = video_file.download_as_bytearray()
+        context.user_data['video'] = video_bytes
         send_filters_keyboard(update, context)
     else:
         keyboard = [
@@ -108,12 +110,12 @@ def button(update: Update, context: CallbackContext) -> None:
 
     filter_name = query.data
     video_data = context.user_data['video']
-    video = VideoFileClip(io.BytesIO(video_data))
+    video_clip = VideoFileClip(io.BytesIO(video_data))
 
-    filtered_video = apply_filter(video, filter_name)
+    filtered_video = apply_filter(video_clip, filter_name)
 
     bio = io.BytesIO()
-    bio.name = 'video.mp4'
+    bio.name = 'filtered_video.mp4'
     filtered_video.write_videofile(bio.name, codec='libx264')
     bio.seek(0)
 
